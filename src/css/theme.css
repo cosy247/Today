@@ -1,0 +1,8 @@
+.background {
+    background: -webkit-linear-gradient(top, transparent 40rpx, rgb(218, 218, 106) 41rpx), -webkit-linear-gradient(left, rgb(241, 245, 246) 40rpx, rgb(218, 218, 106) 41rpx);
+    background-size: 42rpx 42rpx;
+}
+
+input{
+    caret-color:#333;
+}
