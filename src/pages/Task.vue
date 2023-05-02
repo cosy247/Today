@@ -22,7 +22,7 @@
     import { reactive, ref } from 'vue';
     import task from '../storage/task.js';
     import Tab from '../components/Tab';
-    import AddTask from '../components/AddTask';
+    import AddTask from './AddTask';
 
     export default {
         components:{Tab, AddTask},
