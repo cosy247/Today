@@ -1,5 +1,5 @@
 <template>
-    <view class="datetimePicker-root">
+    <view :class="{ 'datetimePicker-root': 1, 'datetimePicker-show': $props.show }">
         <view class="datetimePicker-mask" @click="$props.closeCallback(null)"></view>
         <view class="datetimePicker-main">
             <view class="datetimePicker-header">
@@ -9,15 +9,20 @@
                 <view class="datetimePicker-header-nextMoon" @click="nextMoon"></view>
                 <view class="datetimePicker-header-close font" @click="$props.closeCallback(null)">×</view>
             </view>
-            <view class="datatimePicker-weeks">
+            <view class="datetimePicker-weeks">
                 <view class="datetimePicker-week font" v-for="item in '一二三四五六日'">{{ item }}</view>
             </view>
-            <view class="datatimePicker-days">
+            <view class="datetimePicker-days">
                 <view :class="{ 'datetimePicker-moonDay': item.getMonth() + 1 == moon, 'datetimePicker-selected': selectedDateString == item.toLocaleDateString() }" v-for="item in days" @click="selectedDateString = item.toLocaleDateString()">{{ item.getDate() }}</view>
             </view>
-            <view class="datatimePicker-buttons">
-                <view class="datatimePicker-button" @click="$props.closeCallback(new Date(selectedDateString))">确定</view>
-                <view class="datatimePicker-button" @click="$props.closeCallback(null)">取消</view>
+            <view class="datetimePicker-time">
+                <view class="datetimePicker-time-select">{{time.slice(0, 2)}}</view>
+                <view>:</view>
+                <view class="datetimePicker-time-select">{{time.slice(3, 5)}}</view>
+            </view>
+            <view class="datetimePicker-buttons">
+                <view class="datetimePicker-button" @click="$props.closeCallback(new Date(selectedDateString))">确定</view>
+                <view class="datetimePicker-button" @click="$props.closeCallback(null)">取消</view>
             </view>
         </view>
     </view>
@@ -25,13 +30,14 @@
 
 <script>
     export default {
-        props: ['closeCallback'],
+        props: ['show', 'closeCallback'],
         data() {
             const now = new Date();
             return {
                 year: now.getFullYear(),
                 moon: now.getMonth() + 1,
-                selectedDateString: new Date().toLocaleDateString()
+                time: now.toLocaleTimeString(),
+                selectedDateString: new Date().toLocaleDateString(),
             };
         },
         computed: {
@@ -77,7 +83,7 @@
     };
 </script>
 
-<style>
+<style scoped>
     .datetimePicker-root {
         position: fixed;
         width: 100%;
@@ -85,6 +91,12 @@
         left: 0;
         top: 0;
         z-index: 1000;
+        pointer-events: none;
+        z-index: -1;
+    }
+    .datetimePicker-show {
+        pointer-events: auto;
+        z-index: 9999;
     }
     .datetimePicker-mask {
         position: absolute;
@@ -92,30 +104,26 @@
         height: 100%;
         left: 0;
         top: 0;
-        background: #8888;
+        background: #8880;
         z-index: -1;
-        animation: datetimePickerMask 0.3s;
+        transition: 0.3s;
     }
-    @keyframes datetimePickerMask {
-        0% {
-            background: #8880;
-        }
+    .datetimePicker-show > .datetimePicker-mask {
+        background: #8888;
     }
     .datetimePicker-main {
         position: absolute;
-        bottom: 0;
+        bottom: -110%;
         left: 0;
         width: 100%;
         box-sizing: border-box;
         background: #fff;
         border-radius: 30rpx 30rpx 0 0;
         font-size: var(--fontSize-s);
-        animation: datetimePickerMain 0.3s;
+        transition: 0.3s;
     }
-    @keyframes datetimePickerMain {
-        0% {
-            bottom: -110%;
-        }
+    .datetimePicker-show > .datetimePicker-main {
+        bottom: 0;
     }
     .datetimePicker-header {
         padding: 40rpx 40rpx 0;
@@ -157,7 +165,7 @@
         top: 50rpx;
         font-size: var(--fontSize-s);
     }
-    .datatimePicker-weeks {
+    .datetimePicker-weeks {
         padding: 40rpx 40rpx 20rpx;
         border-bottom: 2rpx #888 solid;
         color: #888;
@@ -165,7 +173,7 @@
         align-items: center;
         justify-content: space-between;
     }
-    .datatimePicker-days {
+    .datetimePicker-days {
         padding: 40rpx 40rpx 20rpx;
         border-bottom: 2rpx #888 solid;
         color: #888;
@@ -179,12 +187,26 @@
     .datetimePicker-moonDay {
         color: #111;
     }
-    .datatimePicker-buttons {
+    .datetimePicker-buttons {
         padding: 40rpx;
         display: flex;
         align-items: center;
     }
-    .datatimePicker-button {
+    .datetimePicker-time {
+        padding: 25rpx 100rpx;
+        border-bottom: 2rpx #888 solid;
+        color: #111;
+        font-weight: 900;
+        display: flex;
+        justify-content: space-evenly;
+    }
+    .detetimePicker-time-box {
+        position: absolute;
+        width: 80%;
+        margin: 10%;
+        background: white;
+    }
+    .datetimePicker-button {
         width: 100%;
         text-align: center;
         border-radius: 100rpx;
