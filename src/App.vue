@@ -1,6 +1,3 @@
-<template>
-    <p class="kkkk">123</p>
-</template>
 <script>
     export default {
         onLaunch: function () {

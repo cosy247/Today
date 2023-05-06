@@ -14,8 +14,9 @@
             </view>
         </view>
         <Tab class="task-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
-        <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask"/>
+        <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" />
     </view>
+    <DatetimePickerVue />
 </template>
 
 <script>
@@ -23,19 +24,23 @@
     import task from '../storage/task.js';
     import Tab from '../components/Tab';
     import AddTask from './AddTask';
+    import DatetimePickerVue from '../components/DatetimePicker.vue';
 
     export default {
-        components:{Tab, AddTask},
-        setup() {
-            const tasks = reactive(task.getAll());
+        components: { Tab, AddTask, DatetimePickerVue },
+        data() {
+            const tasks = task.getAll();
             const showAddTask = ref(false);
 
             function hiddenAddTask() {
                 showAddTask.value = false;
             }
 
-            return {tasks, showAddTask, hiddenAddTask}
+            return { tasks, showAddTask, hiddenAddTask };
         },
+        setup() {
+            
+        }
     };
 </script>
 

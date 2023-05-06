@@ -69,7 +69,7 @@
                         {{ task.isAllDay ? '' : task.datetime.start.toLocaleTimeString().slice(0, 5) }}
                     </view>
                     <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">
-                        共{{ 1 + Math.round((task.datetime.end - task.datetime.start) / 1000 / 24 / 60 / 60)}}天
+                        共{{ 1 + Math.round((task.datetime.end - task.datetime.start) / 1000 / 24 / 60 / 60) }}天
                         <br />
                         {{ task.isAllDay ? '' : task.datetime.start.toLocaleTimeString().slice(0, 5) }}
                     </view>
@@ -81,17 +81,14 @@
                 </view>
             </view>
         </view>
-        <DatetimePicker :show="showDatetimePicker" :closeCallback="selecteDateCallback" />
     </view>
 </template>
 
 <script>
     import { reactive, ref } from 'vue';
     import taskLabelStorage from '../storage/taskLabel.js';
-    import DatetimePicker from '../components/DatetimePicker.vue';
 
     export default {
-        components: { DatetimePicker },
         props: ['hide'],
         data: () => ({
             labels: reactive(taskLabelStorage.getAll()),
@@ -163,6 +160,7 @@
                 this.$data.task.count = value <= 0 ? 1 : value;
             },
             selectWeek(weekIndex) {
+                console.log(this.$datetimePicker);
                 const {
                     task: {
                         recycle: { weekIndexs },
@@ -208,7 +206,7 @@
             },
             selecteDateCallback(date) {
                 this.$data.showDatetimePicker = false;
-                if(!date) return;
+                if (!date) return;
                 if (this.$data.selecteDateType == 'start') {
                     this.$data.task.datetime.start = date;
                 } else {
@@ -324,7 +322,7 @@
         padding: 10rpx 0 10rpx 30rpx;
     }
     .addTask-content-block::before {
-        content: "";
+        content: '';
         display: block;
         margin-top: -40rpx;
     }
