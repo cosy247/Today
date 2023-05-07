@@ -13,9 +13,9 @@
                 <view class="datetimePicker-week font" v-for="item in '一二三四五六日'">{{ item }}</view>
             </view>
             <view class="datetimePicker-days">
-                <view :class="{ 'datetimePicker-moonDay': item[1] == moon }" v-for="item in days" :style="item[0] == year && item[1] == moon && item[2] == day ? `color:#fff; background:${color}` : ''" @click="[year, moon, day] = item">{{ item[2] }}</view>
+                <view :class="{ 'datetimePicker-moonDay': item[1] == moon, 'detetimePicker-dis': !checkDateCanSelect(item) }" v-for="item in days" :style="item[0] == year && item[1] == moon && item[2] == day ? `color:#fff; background:${color}` : ''" @click="[year, moon, day] = item">{{ item[2] }}</view>
             </view>
-            <view class="datetimePicker-time">
+            <view class="datetimePicker-time" v-show="selectTime">
                 <view class="datetimePicker-time-hours" @click="showSelectHours = true">
                     {{ hours }}
                 </view>
@@ -43,36 +43,67 @@
         data() {
             const now = new Date();
 
+            // 定义全局函数调用时间选择器
             window.$datetiemPicker = (props = {}) => {
-                const { datetime = now, color = '#007aff', submit, cancel } = props;
+                const { datetime = now, color = '#007aff', maxDatetime, minDatetime = new Date(), selectTime = true, submit, cancel } = props;
                 const date = new Date(datetime);
+
                 this.$data.year = date.getFullYear();
                 this.$data.moon = date.getMonth() + 1;
                 this.$data.day = date.getDate();
                 this.$data.hours = date.getHours();
                 this.$data.minute = date.getMinutes();
-                this.$data.color = color;
+
+                this.$data.selectTime = selectTime;
+                this.$data.minDatetime = minDatetime ? new Date(minDatetime).toLocaleString().split(/ |\/|:/) : ['0','0','0','0','0','0'];
+                this.$data.maxDatetime = maxDatetime ? new Date(maxDatetime).toLocaleString().split(/ |\/|:/) : ['9999','0','0','0','0','0'];
                 this.$data.submit = submit;
                 this.$data.cancel = cancel;
+
+                this.$data.color = color;
+
                 this.$data.show = true;
+                this.$data.showSelectHours = false;
+                this.$data.showSelectMinute = false;
             };
 
             return {
+                /** 主題顔色 */
                 color: '#ff7aff',
+
+                /** 年份 */
                 year: now.getFullYear(),
-                day: now.getDay(),
+                /** 月份 */
                 moon: now.getMonth() + 1,
+                /** 号数 */
+                day: now.getDay(),
+                /** 小时 */
                 hours: now.getHours(),
+                /** 分钟 */
                 minute: now.getMinutes(),
+
+                /** 小时时间是否可算 */
+                selectTime: false,
+                /** 最小选择时间，[年，月，日，小时，分钟，秒] */
+                minDatetime:  ['0','0','0','0','0','0'],
+                /** 最大选择时间，[年，月，日，小时，分钟，秒] */
+                maxDatetime:  ['9999','0','0','0','0','0'],
+
+                /** 确认的回调函数 */
                 submit: null,
+                /** 取消的回调函数 */
                 cancel: null,
 
+                /** 是否显示组件 */
                 show: false,
+                /** 是否显示小时选择器 */
                 showSelectHours: false,
+                /** 是否显示分钟选择器 */
                 showSelectMinute: false,
             };
         },
         computed: {
+            // 获取当前月的日期时间，数组中每天都为一个数组：[年，月，日]
             days() {
                 const days = [];
                 const dateString = `${this.$data.year}/${this.$data.moon}`;
@@ -89,6 +120,7 @@
             },
         },
         methods: {
+            // 下一个月
             nextMoon() {
                 if (this.$data.moon == 12) {
                     this.$data.moon = 1;
@@ -97,6 +129,7 @@
                     this.$data.moon++;
                 }
             },
+            // 上一个月
             lastMoon() {
                 if (this.$data.moon == 1) {
                     this.$data.moon = 12;
@@ -105,12 +138,22 @@
                     this.$data.moon--;
                 }
             },
+            // 选择今天
             goToday() {
                 const now = new Date();
                 this.$data.year = now.getFullYear();
                 this.$data.moon = now.getMonth() + 1;
                 this.$data.day = now.getDate();
             },
+            // 检查目标日期是否可选
+            checkDateCanSelect([year, moon, day]) {
+                const {minDatetime:[minYear, minMoon, minDay], maxDatetime:[maxYear, maxMoon, maxDay]} = this.$data;
+                const dateNumber =  +`${year}${moon.padStart(2, 0)}${day.padStart(2, 0)}`;
+                const minDatetiemNumber = +`${minYear}${minMoon.padStart(2, 0)}${minDay.padStart(2, 0)}`;
+                const maxDatetiemNumber = +`${maxYear}${maxMoon.padStart(2, 0)}${maxDay.padStart(2, 0)}`;
+                return dateNumber >= minDatetiemNumber && dateNumber <= maxDatetiemNumber;
+            },
+            // 确认日期时间选择
             submitHandel() {
                 const { year, moon, day, hours, minute, submit } = this.$data;
                 this.$data.show = false;
@@ -119,6 +162,7 @@
                     submit(datetime);
                 }
             },
+            // 取消日期时间选择
             cancelHandel() {
                 const { cancel } = this.$data;
                 this.$data.show = false;
@@ -276,5 +320,10 @@
         color: white;
         font-weight: 900;
         margin: 0 20rpx;
+    }
+    .detetimePicker-dis {
+        text-decoration: line-through;
+        color: #888;
+        pointer-events: none;
     }
 </style>
