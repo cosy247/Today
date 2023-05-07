@@ -85,17 +85,14 @@
 </template>
 
 <script>
-    import { reactive, ref } from 'vue';
     import taskLabelStorage from '../storage/taskLabel.js';
 
     export default {
         props: ['hide'],
         data: () => ({
-            labels: reactive(taskLabelStorage.getAll()),
+            labels: taskLabelStorage.getAll(),
             taskCount: [1, 2, 3, 5],
-            taskCountInput: ref(),
-            showDatetimePicker: false,
-            selecteDateType: '', // 选择时间的类型，start为开始时间，end为结束时间
+            taskCountInput: '',
             taskRecycles: [
                 {
                     type: 'one',
@@ -197,21 +194,22 @@
                 }
             },
             selecteDatetimeStart() {
-                this.$data.showDatetimePicker = true;
-                this.$data.selecteDateType = 'start';
+                window.$datetiemPicker({
+                    color: this.$data.task.label.color,
+                    datetime: this.$data.task.datetime.start,
+                    submit:(date) => {
+                        this.$data.task.datetime.start = date
+                    }
+                })
             },
             selecteDatetimeEnd() {
-                this.$data.showDatetimePicker = true;
-                this.$data.selecteDateType = 'end';
-            },
-            selecteDateCallback(date) {
-                this.$data.showDatetimePicker = false;
-                if (!date) return;
-                if (this.$data.selecteDateType == 'start') {
-                    this.$data.task.datetime.start = date;
-                } else {
-                    this.$data.task.datetime.end = date;
-                }
+                window.$datetiemPicker({
+                    color: this.$data.task.label.color,
+                    datetime: this.$data.task.datetime.end,
+                    submit:(date) => {
+                        this.$data.task.datetime.end = date
+                    }
+                })
             },
         },
     };

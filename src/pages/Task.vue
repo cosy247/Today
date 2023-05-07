@@ -20,7 +20,7 @@
 </template>
 
 <script>
-    import { reactive, ref } from 'vue';
+    import { ref } from 'vue';
     import task from '../storage/task.js';
     import Tab from '../components/Tab';
     import AddTask from './AddTask';
@@ -28,19 +28,15 @@
 
     export default {
         components: { Tab, AddTask, DatetimePickerVue },
-        data() {
-            const tasks = task.getAll();
-            const showAddTask = ref(false);
-
-            function hiddenAddTask() {
-                showAddTask.value = false;
-            }
-
-            return { tasks, showAddTask, hiddenAddTask };
+        data: () => ({
+            tasks: task.getAll(),
+            showAddTask: false,
+        }),
+        methods: {
+            hiddenAddTask() {
+                this.$data.showAddTask = false;
+            },
         },
-        setup() {
-            
-        }
     };
 </script>
 
