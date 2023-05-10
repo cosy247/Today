@@ -4,10 +4,12 @@
         <view class="datetimePicker-main">
             <view class="datetimePicker-header">
                 <view class="datetimePicker-header-today font" @click="goToday">今天</view>
-                <view class="datetimePicker-header-lastMoon" @click="lastMoon"></view>
-                <view class="datetimePicker-header-date">{{ year }}年{{ moon }}月</view>
-                <view class="datetimePicker-header-nextMoon" @click="nextMoon"></view>
-                <view class="datetimePicker-header-close font" @click="cancelHandel">×</view>
+                <view @click="lastYear">&#xe641;</view>
+                <view @click="lastMoon">&#xe640;</view>
+                <view>{{ year }}年{{ moon }}月</view>
+                <view @click="nextMoon">&#xe63e;</view>
+                <view @click="nextYear">&#xe642;</view>
+                <view class="datetimePicker-header-close font" @click="cancelHandel">&#xe658;</view>
             </view>
             <view class="datetimePicker-weeks">
                 <view class="datetimePicker-week font" v-for="item in '一二三四五六日'">{{ item }}</view>
@@ -55,8 +57,8 @@
                 this.$data.minute = date.getMinutes();
 
                 this.$data.selectTime = selectTime;
-                this.$data.minDatetime = minDatetime ? new Date(minDatetime).toLocaleString().split(/ |\/|:/) : ['0','0','0','0','0','0'];
-                this.$data.maxDatetime = maxDatetime ? new Date(maxDatetime).toLocaleString().split(/ |\/|:/) : ['9999','0','0','0','0','0'];
+                this.$data.minDatetime = minDatetime ? new Date(minDatetime).toLocaleString().split(/ |\/|:/) : ['0', '0', '0', '0', '0', '0'];
+                this.$data.maxDatetime = maxDatetime ? new Date(maxDatetime).toLocaleString().split(/ |\/|:/) : ['9999', '0', '0', '0', '0', '0'];
                 this.$data.submit = submit;
                 this.$data.cancel = cancel;
 
@@ -85,9 +87,9 @@
                 /** 小时时间是否可算 */
                 selectTime: false,
                 /** 最小选择时间，[年，月，日，小时，分钟，秒] */
-                minDatetime:  ['0','0','0','0','0','0'],
+                minDatetime: ['0', '0', '0', '0', '0', '0'],
                 /** 最大选择时间，[年，月，日，小时，分钟，秒] */
-                maxDatetime:  ['9999','0','0','0','0','0'],
+                maxDatetime: ['9999', '0', '0', '0', '0', '0'],
 
                 /** 确认的回调函数 */
                 submit: null,
@@ -138,6 +140,14 @@
                     this.$data.moon--;
                 }
             },
+            // 下一个月
+            nextYear() {
+                this.$data.year++;
+            },
+            // 上一个月
+            lastYear() {
+                this.$data.year--;
+            },
             // 选择今天
             goToday() {
                 const now = new Date();
@@ -147,8 +157,11 @@
             },
             // 检查目标日期是否可选
             checkDateCanSelect([year, moon, day]) {
-                const {minDatetime:[minYear, minMoon, minDay], maxDatetime:[maxYear, maxMoon, maxDay]} = this.$data;
-                const dateNumber =  +`${year}${moon.padStart(2, 0)}${day.padStart(2, 0)}`;
+                const {
+                    minDatetime: [minYear, minMoon, minDay],
+                    maxDatetime: [maxYear, maxMoon, maxDay],
+                } = this.$data;
+                const dateNumber = +`${year}${moon.padStart(2, 0)}${day.padStart(2, 0)}`;
                 const minDatetiemNumber = +`${minYear}${minMoon.padStart(2, 0)}${minDay.padStart(2, 0)}`;
                 const maxDatetiemNumber = +`${maxYear}${maxMoon.padStart(2, 0)}${maxDay.padStart(2, 0)}`;
                 return dateNumber >= minDatetiemNumber && dateNumber <= maxDatetiemNumber;
@@ -213,7 +226,8 @@
         bottom: 0%;
     }
     .datetimePicker-header {
-        padding: 40rpx 40rpx 0;
+        position: relative;
+        padding: 20rpx 40rpx 0;
         box-sizing: border-box;
         position: relative;
         margin: 0 auto;
@@ -221,36 +235,25 @@
         width: 100%;
         justify-content: center;
         align-items: center;
-        line-height: 0;
+        font-size: var(--fontSize-s);
+    }
+    .datetimePicker-header view {
+        margin: 0 5rpx;
     }
     .datetimePicker-header-today {
         position: absolute;
-        left: 30rpx;
-        top: 50rpx;
-        font-size: var(--fontSize-s);
-    }
-    .datetimePicker-header-date {
-        margin: 0 20rpx;
-    }
-    .datetimePicker-header-lastMoon,
-    .datetimePicker-header-nextMoon {
-        width: 20rpx;
-        height: 20rpx;
-        border-top: 6rpx #888 solid;
-        border-left: 6rpx #888 solid;
-        transform-origin: center center;
-    }
-    .datetimePicker-header-lastMoon {
-        transform: rotate(-45deg);
-    }
-    .datetimePicker-header-nextMoon {
-        transform: rotate(135deg);
+        left: 40rpx;
+        top: 15rpx;
     }
     .datetimePicker-header-close {
         position: absolute;
-        right: 30rpx;
-        top: 50rpx;
-        font-size: var(--fontSize-s);
+        right: 40rpx;
+        top: 15rpx;
+    }
+    .datetimePicker-header-date {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
     }
     .datetimePicker-weeks {
         padding: 40rpx 40rpx 20rpx;

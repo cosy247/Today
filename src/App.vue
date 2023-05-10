@@ -14,11 +14,13 @@
 
 <style>
     /*********************** font ***********************/
-    @font-face {
-        font-family: 'iconfont'; /* Project id 4045984 */
-        src: url('//at.alicdn.com/t/c/font_4045984_1b2afz26zzz.woff2?t=1682954519206') format('woff2'), url('//at.alicdn.com/t/c/font_4045984_1b2afz26zzz.woff?t=1682954519206') format('woff'), url('//at.alicdn.com/t/c/font_4045984_1b2afz26zzz.ttf?t=1682954519206') format('truetype');
-    }
-
+   /* CDN 服务仅供平台体验和调试使用，平台不承诺服务的稳定性，企业客户需下载字体包自行发布使用并做好备份。 */
+@font-face {
+  font-family: 'iconfont';  /* Project id 4045984 */
+  src: url('//at.alicdn.com/t/c/font_4045984_x6wmqsz5j.woff2?t=1683547626416') format('woff2'),
+       url('//at.alicdn.com/t/c/font_4045984_x6wmqsz5j.woff?t=1683547626416') format('woff'),
+       url('//at.alicdn.com/t/c/font_4045984_x6wmqsz5j.ttf?t=1683547626416') format('truetype');
+}
     @font-face {
         font-family: 'app-font'; /* Project id 4045984 */
         src: url('../static/font/font.ttf') format('truetype');
