@@ -205,12 +205,14 @@
             intervalTime() {
                 const {
                     task: {
+                        isAllDay,
                         datetime: { start, end },
                     },
                 } = this.$data;
                 const allMinutes = Math.round((end - start) / 1000 / 60);
+                const day = isAllDay ? Math.ceil(allMinutes / 60 / 24) :  Math.floor(allMinutes / 60 / 24);
                 return {
-                    day: Math.floor(allMinutes / 60 / 24),
+                    day,
                     hours: Math.floor((allMinutes % (60 * 24)) / 60),
                     minutes: allMinutes % 60,
                 };
