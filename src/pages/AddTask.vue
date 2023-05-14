@@ -37,7 +37,7 @@
                 <view v-show="task.recycle.type == 'one'">
                     <!-- 时间选择 -->
                     <view class="addTask-content-titleLine">
-                        <view class="addTask-content-subTitle">时间选择：</view>
+                        <view class="addTask-content-subTitle">任务日期：</view>
                         <view class="addTask-content-dateTypes">
                             <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
                         </view>
@@ -63,7 +63,7 @@
                 <view v-show="task.recycle.type == 'day'">
                     <!-- 时间间隔 -->
                     <view class="addTask-content-titleLine">
-                        <view class="addTask-content-subTitle">时间间隔：</view>
+                        <view class="addTask-content-subTitle">任务间隔：</view>
                     </view>
                     <view class="addTask-content-interval">
                         <view class="addTask-content-tip">
@@ -71,41 +71,42 @@
                         </view>
                         <view class="addTask-content-interval-count">
                             <view class="addTask-content-interval-option" @click="task.recycle.interval != 0 && task.recycle.interval--">&#xea6d;</view>
-                            <view :style="{ color: task.label.color }">{{ task.recycle.interval }}</view>
+                            <view :style="{ color: task.label.color }">{{ task.recycle.interval }}天</view>
                             <view class="addTask-content-interval-option" @click="task.recycle.interval++">&#xea6e;</view>
                         </view>
                     </view>
-                    <!-- 时间选择 -->
+                    <!-- 任务日期 -->
                     <view class="addTask-content-titleLine">
-                        <view class="addTask-content-subTitle">时间选择：</view>
+                        <view class="addTask-content-subTitle">任务日期：</view>
                         <view class="addTask-content-dateTypes">
-                            <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
+                            <view class="addTask-content-dateType" :style="{ background: !task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">存在结束</view>
+                            <view class="addTask-content-dateType" :style="{ background: task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">永不结束</view>
                         </view>
                     </view>
-                    <view class="addTask-content-datetime" v-show="!task.isAllDay">
+                    <view class="addTask-content-datetime">
+                        <view v-show="task.isForever">开始时间：</view>
                         <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
-                            {{ task.datetime.start.toLocaleTimeString().slice(0, 5) }}
+                            {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
-                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
-                            {{ task.datetime.end.toLocaleTimeString().slice(0, 5) }}
+                        <view class="addTask-content-datetime-tip" v-show="!task.isForever" :style="{ color: task.label.color }">共{{ intervalTime.day }}天</view>
+                        <view class="addTask-content-datetime-select" v-show="!task.isForever" @click="selecteDatetimeEnd">
+                            {{ task.datetime.end.toLocaleDateString().slice(0, 10) }}
                         </view>
                     </view>
                     <!-- 执行时间 -->
                     <view class="addTask-content-titleLine">
                         <view class="addTask-content-subTitle">执行时间：</view>
                         <view class="addTask-content-dateTypes">
-                            <view>永不结束 <input type="checkbox"> </view>
                             <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="!task.isAllDay">
                         <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
-                            {{ task.datetime.start.toLocaleTimeString().slice(0, 5) }}
+                            {{ task.recycle.datetime.start.toLocaleTimeString().slice(0, 5) }}
                         </view>
                         <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
                         <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
-                            {{ task.datetime.end.toLocaleTimeString().slice(0, 5) }}
+                            {{ task.recycle.datetime.end.toLocaleTimeString().slice(0, 5) }}
                         </view>
                     </view>
                 </view>
@@ -141,9 +142,14 @@
             console.log(now.toLocaleString());
 
             return {
+                /** 全部任务标签 */
                 labels: taskLabelStorage.getAll(),
+                /** 任务次数 */
                 taskCount: [1, 2, 3, 5],
+                /** 任务自定义次数 */
                 taskCountInput: '',
+                /** 任务是否永不结束 */
+                isForever: false,
                 taskRecycles: [
                     {
                         type: 'one',
@@ -207,14 +213,20 @@
                     task: {
                         isAllDay,
                         datetime: { start, end },
+                        recycle: {type}
                     },
                 } = this.$data;
                 const allMinutes = Math.round((end - start) / 1000 / 60);
-                const day = isAllDay ? Math.ceil(allMinutes / 60 / 24) :  Math.floor(allMinutes / 60 / 24);
+                let day;
+                if(type == 'one') {
+                    day = isAllDay ? (Math.ceil(allMinutes / 60 / 24) + 1) : Math.floor(allMinutes / 60 / 24);
+                } else {
+                    day = Math.ceil(allMinutes / 60 / 24) + 1;
+                }
                 return {
                     day,
                     hours: Math.floor((allMinutes % (60 * 24)) / 60),
-                    minutes: allMinutes % 60,
+                    minutes: allMinutes % 60 + 1,
                 };
             },
         },
@@ -264,7 +276,7 @@
                 window.$datetiemPicker({
                     color: this.$data.task.label.color,
                     datetime: this.$data.task.datetime.start,
-                    selectTime: !this.$data.task.isAllDay,
+                    selectTime: this.$data.task.recycle.type == 'one' && !this.$data.task.isAllDay,
                     submit: (date) => {
                         this.$data.task.datetime.start = date;
                         if (this.$data.task.datetime.end < this.$data.task.datetime.start) {
@@ -278,6 +290,7 @@
                     color: this.$data.task.label.color,
                     datetime: this.$data.task.datetime.end,
                     minDatetime: this.$data.task.datetime.start,
+                    selectTime: this.$data.task.recycle.type == 'one' && !this.$data.task.isAllDay,
                     submit: (date) => {
                         this.$data.task.datetime.end = date;
                     },
