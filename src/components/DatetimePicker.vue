@@ -47,7 +47,7 @@
 
             // 定义全局函数调用时间选择器
             window.$datetiemPicker = (props = {}) => {
-                const { datetime = now, color = '#007aff', maxDatetime, minDatetime = new Date(), selectTime = true, submit, cancel } = props;
+                const { datetime = now, color = '#007aff', maxDatetime, minDatetime, selectTime = true, submit, cancel } = props;
                 const date = new Date(datetime);
 
                 this.$data.year = date.getFullYear();

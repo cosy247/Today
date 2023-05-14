@@ -30,9 +30,41 @@
                     <view class="addTask-content-recycle" v-for="item in taskRecycles" :style="{ background: item.type == task.recycle.type ? task.label.color : '' }" @click="task.recycle.type = item.type">{{ item.text }}</view>
                 </view>
             </view>
+
+            <!-- 不同任务循环显示不同选择 -->
             <view class="addTask-content-block" :style="{ borderLeftColor: task.label.color }">
-                <view v-show="['day', 'week', 'moon'].includes(task.recycle.type)">
-                    <view class="addTask-content-subTitle">时间间隔：</view>
+                <!-- 一次任务循环 -->
+                <view v-show="task.recycle.type == 'one'">
+                    <!-- 时间选择 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">时间选择：</view>
+                        <view class="addTask-content-dateTypes">
+                            <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime">
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
+                            {{ task.datetime.start.toLocaleDateString() }}
+                            <br />
+                            {{ task.isAllDay ? '' : task.datetime.start.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">
+                            共{{ intervalTime.day }}天
+                            <view v-if="!task.isAllDay">{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
+                        </view>
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
+                            {{ task.datetime.end.toLocaleDateString() }}
+                            <br />
+                            {{ task.isAllDay ? '' : task.datetime.end.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                    </view>
+                </view>
+                <!-- 按天循环的任务 -->
+                <view v-show="task.recycle.type == 'day'">
+                    <!-- 时间间隔 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">时间间隔：</view>
+                    </view>
                     <view class="addTask-content-interval">
                         <view class="addTask-content-tip">
                             {{ intervalTip }}
@@ -43,40 +75,54 @@
                             <view class="addTask-content-interval-option" @click="task.recycle.interval++">&#xea6e;</view>
                         </view>
                     </view>
+                    <!-- 时间选择 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">时间选择：</view>
+                        <view class="addTask-content-dateTypes">
+                            <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="!task.isAllDay">
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
+                            {{ task.datetime.start.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
+                            {{ task.datetime.end.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                    </view>
+                    <!-- 执行时间 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">执行时间：</view>
+                        <view class="addTask-content-dateTypes">
+                            <view>永不结束 <input type="checkbox"> </view>
+                            <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="!task.isAllDay">
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
+                            {{ task.datetime.start.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
+                            {{ task.datetime.end.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                    </view>
                 </view>
-
-                <view v-show="['day', 'week', 'moon'].includes(task.recycle.type)">
-                    <view class="addTask-content-subTitle" v-show="task.recycle.type != 'day'">时间选择：</view>
-                    <view class="addTask-content-selectWeeks" v-show="task.recycle.type == 'week'">
+                <!-- 按周循环的任务 -->
+                <view v-show="task.recycle.type == 'week'">
+                    <view class="addTask-content-selectWeeks">
                         <view class="addTask-content-selectWeek" v-for="(item, index) in '一二三四五六日'" @click="selectWeek(index)" :style="{ background: task.recycle.weekIndexs.has(index) ? task.label.color : '' }">{{ item }}</view>
                     </view>
-                    <view class="addTask-content-selectMoons" v-show="task.recycle.type == 'moon'">
+                </view>
+                <!-- 按月循环的任务 -->
+                <view v-show="task.recycle.type == 'moon'">
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">时间选择：</view>
+                    </view>
+                    <view class="addTask-content-selectMoons">
                         <view class="addTask-content-selectMoon" v-for="(item, index) in 31" @click="selectMoonStart(index)" :style="{ background: task.recycle.moonIndexs.has(index) ? task.label.color : '' }">{{ item }}</view>
                         <view class="addTask-content-clearMoon" @click="task.recycle.moonIndexs = new Set()">清空</view>
-                    </view>
-                </view>
-
-                <view class="addTask-content-titleLine">
-                    <view class="addTask-content-subTitle">任务时间：</view>
-                    <view class="addTask-content-dateTypes">
-                        <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
-                    </view>
-                </view>
-                <view class="addTask-content-datetime">
-                    <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
-                        {{ task.datetime.start.toLocaleDateString() }}
-                        <br />
-                        {{ task.isAllDay ? '' : task.datetime.start.toLocaleTimeString().slice(0, 5) }}
-                    </view>
-                    <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">
-                        共{{ 1 + Math.round((task.datetime.end - task.datetime.start) / 1000 / 24 / 60 / 60) }}天
-                        <br />
-                        {{ task.isAllDay ? '' : task.datetime.start.toLocaleTimeString().slice(0, 5) }}
-                    </view>
-                    <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
-                        {{ task.datetime.end.toLocaleDateString() }}
-                        <br />
-                        {{ task.isAllDay ? '' : task.datetime.end.toLocaleTimeString().slice(0, 5) }}
                     </view>
                 </view>
             </view>
@@ -89,51 +135,57 @@
 
     export default {
         props: ['hide'],
-        data: () => ({
-            labels: taskLabelStorage.getAll(),
-            taskCount: [1, 2, 3, 5],
-            taskCountInput: '',
-            taskRecycles: [
-                {
-                    type: 'one',
-                    text: '一次',
-                },
-                {
-                    type: 'day',
-                    text: '按天',
-                },
-                {
-                    type: 'week',
-                    text: '按周',
-                },
-                {
-                    type: 'moon',
-                    text: '按月',
-                },
-            ],
-            task: {
-                count: 1,
-                isAllDay: false,
-                label: {
-                    color: taskLabelStorage.getAll()[0].color,
-                    title: taskLabelStorage.getAll()[0].title,
-                },
-                recycle: {
-                    type: 'one',
-                    interval: 0,
-                    weekIndexs: new Set([0, 1, 2, 3, 4]),
-                    moonIndexs: new Set([]),
+        data() {
+            const now = new Date();
+            now.setSeconds(0);
+            console.log(now.toLocaleString());
+
+            return {
+                labels: taskLabelStorage.getAll(),
+                taskCount: [1, 2, 3, 5],
+                taskCountInput: '',
+                taskRecycles: [
+                    {
+                        type: 'one',
+                        text: '一次',
+                    },
+                    {
+                        type: 'day',
+                        text: '按天',
+                    },
+                    {
+                        type: 'week',
+                        text: '按周',
+                    },
+                    {
+                        type: 'moon',
+                        text: '按月',
+                    },
+                ],
+                task: {
+                    count: 1,
+                    isAllDay: false,
+                    label: {
+                        color: taskLabelStorage.getAll()[0].color,
+                        title: taskLabelStorage.getAll()[0].title,
+                    },
+                    recycle: {
+                        type: 'one',
+                        interval: 0,
+                        weekIndexs: new Set([0, 1, 2, 3, 4]),
+                        moonIndexs: new Set([]),
+                        datetime: {
+                            start: now,
+                            end: now,
+                        },
+                    },
                     datetime: {
-                        start: new Date(),
-                        end: new Date(),
+                        start: now,
+                        end: now,
                     },
                 },
-                datetime: {
-                    start: new Date(),
-                    end: new Date(),
-                },
-            },
-        }),
+            };
+        },
         computed: {
             intervalTip() {
                 const {
@@ -149,6 +201,19 @@
                 } else {
                     return `每隔${interval}${intervalText}就会创建一次任务`;
                 }
+            },
+            intervalTime() {
+                const {
+                    task: {
+                        datetime: { start, end },
+                    },
+                } = this.$data;
+                const allMinutes = Math.round((end - start) / 1000 / 60);
+                return {
+                    day: Math.floor(allMinutes / 60 / 24),
+                    hours: Math.floor((allMinutes % (60 * 24)) / 60),
+                    minutes: allMinutes % 60,
+                };
             },
         },
         methods: {
@@ -197,19 +262,24 @@
                 window.$datetiemPicker({
                     color: this.$data.task.label.color,
                     datetime: this.$data.task.datetime.start,
-                    submit:(date) => {
-                        this.$data.task.datetime.start = date
-                    }
-                })
+                    selectTime: !this.$data.task.isAllDay,
+                    submit: (date) => {
+                        this.$data.task.datetime.start = date;
+                        if (this.$data.task.datetime.end < this.$data.task.datetime.start) {
+                            this.$data.task.datetime.end = this.$data.task.datetime.start;
+                        }
+                    },
+                });
             },
             selecteDatetimeEnd() {
                 window.$datetiemPicker({
                     color: this.$data.task.label.color,
                     datetime: this.$data.task.datetime.end,
-                    submit:(date) => {
-                        this.$data.task.datetime.end = date
-                    }
-                })
+                    minDatetime: this.$data.task.datetime.start,
+                    submit: (date) => {
+                        this.$data.task.datetime.end = date;
+                    },
+                });
             },
         },
     };
@@ -252,6 +322,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        height: 60rpx;
         margin: 40rpx 0 20rpx;
     }
     .addTask-content-subTitle {
