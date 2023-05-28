@@ -18,18 +18,18 @@
                 <view :class="{ 'datetimePicker-moonDay': item[1] == moon, 'detetimePicker-dis': !checkDateCanSelect(item) }" v-for="item in days" :style="item[0] == year && item[1] == moon && item[2] == day ? `color:#fff; background:${color}` : ''" @click="[year, moon, day] = item">{{ item[2] }}</view>
             </view>
             <view class="datetimePicker-time" v-show="selectTime">
-                <view class="datetimePicker-time-hours" @click="showSelectHours = true">
+                <view class="datetimePicker-time-hours" @click="isShowSelectHours = true">
                     {{ hours }}
                 </view>
                 <view>:</view>
-                <view class="datetimePicker-time-minute" @click="showSelectMinute = true">
+                <view class="datetimePicker-time-minute" @click="isShowSelectMinute = true">
                     {{ minute }}
                 </view>
-                <view class="datetimePicker-time-selects" v-show="showSelectHours">
-                    <view class="datetimePicker-time-select" v-for="(item, index) in 24" @click="(hours = index), (showSelectHours = false)" :style="{ background: hours == index ? color : '' }">{{ index }}</view>
+                <view class="datetimePicker-time-selects" v-show="isShowSelectHours" ref="selectHours">
+                    <view class="datetimePicker-time-select" v-for="(item, index) in 24" @click="(hours = index), (isShowSelectHours = false)" :style="{ background: hours == index ? color : '' }">{{ index }}</view>
                 </view>
-                <view class="datetimePicker-time-selects" v-show="showSelectMinute">
-                    <view class="datetimePicker-time-select" v-for="(item, index) in 60" @click="(minute = index), (showSelectMinute = false)" :style="{ background: minute == index ? color : '' }">{{ index }}</view>
+                <view class="datetimePicker-time-selects" v-show="isShowSelectMinute" ref="selectMinute">
+                    <view class="datetimePicker-time-select" v-for="(item, index) in 60" @click="(minute = index), (isShowSelectMinute = false)" :style="{ background: minute == index ? color : '' }">{{ index }}</view>
                 </view>
             </view>
             <view class="datetimePicker-buttons">
@@ -50,23 +50,23 @@
                 const { datetime = now, color = '#007aff', maxDatetime, minDatetime, selectTime = true, submit, cancel } = props;
                 const date = new Date(datetime);
 
-                this.$data.year = date.getFullYear();
-                this.$data.moon = date.getMonth() + 1;
-                this.$data.day = date.getDate();
-                this.$data.hours = date.getHours();
-                this.$data.minute = date.getMinutes();
+                this.year = date.getFullYear();
+                this.moon = date.getMonth() + 1;
+                this.day = date.getDate();
+                this.hours = date.getHours();
+                this.minute = date.getMinutes();
 
-                this.$data.selectTime = selectTime;
-                this.$data.minDatetime = minDatetime ? new Date(minDatetime).toLocaleString().split(/ |\/|:/) : ['0', '0', '0', '0', '0', '0'];
-                this.$data.maxDatetime = maxDatetime ? new Date(maxDatetime).toLocaleString().split(/ |\/|:/) : ['9999', '0', '0', '0', '0', '0'];
-                this.$data.submit = submit;
-                this.$data.cancel = cancel;
+                this.selectTime = selectTime;
+                this.minDatetime = minDatetime ? new Date(minDatetime).toLocaleString().split(/ |\/|:/) : ['0', '0', '0', '0', '0', '0'];
+                this.maxDatetime = maxDatetime ? new Date(maxDatetime).toLocaleString().split(/ |\/|:/) : ['9999', '0', '0', '0', '0', '0'];
+                this.submit = submit;
+                this.cancel = cancel;
 
-                this.$data.color = color;
+                this.color = color;
 
-                this.$data.show = true;
-                this.$data.showSelectHours = false;
-                this.$data.showSelectMinute = false;
+                this.show = true;
+                this.isShowSelectHours = false;
+                this.isShowSelectMinute = false;
             };
 
             return {
@@ -99,16 +99,38 @@
                 /** 是否显示组件 */
                 show: false,
                 /** 是否显示小时选择器 */
-                showSelectHours: false,
+                isShowSelectHours: false,
                 /** 是否显示分钟选择器 */
-                showSelectMinute: false,
+                isShowSelectMinute: false,
             };
+        },
+        watch: {
+            isShowSelectHours(data) {
+                if(!data) return;
+                this.$nextTick(() => {
+                    const hoursContDom = this.$refs.selectHours.$el;
+                    const contWidth = parseInt(getComputedStyle(hoursContDom).width);
+                    const sty = getComputedStyle(hoursContDom.firstElementChild);
+                    const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
+                    console.log(this.hours * itemWidth);
+                    hoursContDom.scrollLeft = this.hours * itemWidth - contWidth / 2 + itemWidth / 2;
+                });
+            },
+            isShowSelectMinute(data) {
+                if(!data) return;
+                this.$nextTick(() => {
+                    const minuteContDom = this.$refs.selectMinute.$el;
+                    const contWidth = parseInt(getComputedStyle(minuteContDom).width);
+                    const sty = getComputedStyle(minuteContDom.firstElementChild);
+                    const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
+                    minuteContDom.scrollLeft = this.minute * itemWidth - contWidth / 2 + itemWidth / 2;
+                });},
         },
         computed: {
             // 获取当前月的日期时间，数组中每天都为一个数组：[年，月，日]
             days() {
                 const days = [];
-                const dateString = `${this.$data.year}/${this.$data.moon}`;
+                const dateString = `${this.year}/${this.moon}`;
                 const startDay = new Date(dateString);
                 startDay.setDate(1);
                 if (startDay.getDay() != 1) {
@@ -124,43 +146,43 @@
         methods: {
             // 下一个月
             nextMoon() {
-                if (this.$data.moon == 12) {
-                    this.$data.moon = 1;
-                    this.$data.year++;
+                if (this.moon == 12) {
+                    this.moon = 1;
+                    this.year++;
                 } else {
-                    this.$data.moon++;
+                    this.moon++;
                 }
             },
             // 上一个月
             lastMoon() {
-                if (this.$data.moon == 1) {
-                    this.$data.moon = 12;
-                    this.$data.year--;
+                if (this.moon == 1) {
+                    this.moon = 12;
+                    this.year--;
                 } else {
-                    this.$data.moon--;
+                    this.moon--;
                 }
             },
             // 下一个月
             nextYear() {
-                this.$data.year++;
+                this.year++;
             },
             // 上一个月
             lastYear() {
-                this.$data.year--;
+                this.year--;
             },
             // 选择今天
             goToday() {
                 const now = new Date();
-                this.$data.year = now.getFullYear();
-                this.$data.moon = now.getMonth() + 1;
-                this.$data.day = now.getDate();
+                this.year = now.getFullYear();
+                this.moon = now.getMonth() + 1;
+                this.day = now.getDate();
             },
             // 检查目标日期是否可选
             checkDateCanSelect([year, moon, day]) {
                 const {
                     minDatetime: [minYear, minMoon, minDay],
                     maxDatetime: [maxYear, maxMoon, maxDay],
-                } = this.$data;
+                } = this;
                 const dateNumber = +`${year}${moon.padStart(2, 0)}${day.padStart(2, 0)}`;
                 const minDatetiemNumber = +`${minYear}${minMoon.padStart(2, 0)}${minDay.padStart(2, 0)}`;
                 const maxDatetiemNumber = +`${maxYear}${maxMoon.padStart(2, 0)}${maxDay.padStart(2, 0)}`;
@@ -168,8 +190,8 @@
             },
             // 确认日期时间选择
             submitHandel() {
-                const { year, moon, day, hours, minute, submit } = this.$data;
-                this.$data.show = false;
+                const { year, moon, day, hours, minute, submit } = this;
+                this.show = false;
                 if (typeof submit == 'function') {
                     const datetime = new Date(`${year}/${moon}/${day} ${hours}:${minute}:00`);
                     submit(datetime);
@@ -177,8 +199,8 @@
             },
             // 取消日期时间选择
             cancelHandel() {
-                const { cancel } = this.$data;
-                this.$data.show = false;
+                const { cancel } = this;
+                this.show = false;
                 typeof cancel == 'function' && cancel;
             },
         },
