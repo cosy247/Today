@@ -18,7 +18,7 @@
                 </view>
             </view>
             <view class="addTask-content-titleLine">
-                <view class="addTask-content-subTitle">任务次数：</view>
+                <view class="addTask-content-subTitle">打卡次数：</view>
             </view>
             <view class="addTask-content-counts">
                 <view class="addTask-content-count" :style="{ background: task.count == count ? task.label.color : '' }" v-for="count in taskCount" @click="task.count = count">{{ count }}</view>
@@ -43,7 +43,7 @@
                         </view>
                     </view>
                     <view class="addTask-content-datetime">
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
+                        <view class="addTask-content-datetime-select" @click="selecteTaskStart">
                             {{ task.datetime.start.toLocaleDateString() }}
                             <br />
                             {{ task.isAllDay ? '' : task.datetime.start.toLocaleTimeString().slice(0, 5) }}
@@ -52,7 +52,7 @@
                             共{{ intervalTime.day }}天
                             <view v-if="!task.isAllDay">{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
                         </view>
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
+                        <view class="addTask-content-datetime-select" @click="selecteTaskEnd">
                             {{ task.datetime.end.toLocaleDateString() }}
                             <br />
                             {{ task.isAllDay ? '' : task.datetime.end.toLocaleTimeString().slice(0, 5) }}
@@ -83,14 +83,22 @@
                             <view class="addTask-content-dateType" :style="{ background: task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">永不结束</view>
                         </view>
                     </view>
-                    <view class="addTask-content-datetime">
-                        <view v-show="task.isForever">开始时间：</view>
+                    <view class="addTask-content-datetime" v-show="!task.isForever">
                         <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
                             {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
-                        <view class="addTask-content-datetime-tip" v-show="!task.isForever" :style="{ color: task.label.color }">共{{ intervalTime.day }}天</view>
-                        <view class="addTask-content-datetime-select" v-show="!task.isForever" @click="selecteDatetimeEnd">
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ intervalTime.day }}天</view>
+                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
                             {{ task.datetime.end.toLocaleDateString().slice(0, 10) }}
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="task.isForever">
+                        <view class="addTask-content-datetime-select" @click="selecteTimeStart">
+                            {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共N天</view>
+                        <view class="addTask-content-datetime-select" @click="selecteTimeEnd">
+                            ----/--/--
                         </view>
                     </view>
                     <!-- 执行时间 -->
@@ -102,18 +110,24 @@
                     </view>
                     <view class="addTask-content-datetime" v-show="!task.isAllDay">
                         <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
-                            {{ task.recycle.datetime.start.toLocaleTimeString().slice(0, 5) }}
+                            {{ task.recycle.time.start.toLocaleTimeString().slice(0, 5) }}
                         </view>
                         <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
                         <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
-                            {{ task.recycle.datetime.end.toLocaleTimeString().slice(0, 5) }}
+                            {{ task.recycle.time.end.toLocaleTimeString().slice(0, 5) }}
                         </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="task.isAllDay">
+                        <view/>
+                        全天
+                        <view/>
+
                     </view>
                 </view>
                 <!-- 按周循环的任务 -->
                 <view v-show="task.recycle.type == 'week'">
                     <view class="addTask-content-selectWeeks">
-                        <view class="addTask-content-selectWeek" v-for="(item, index) in '一二三四五六日'" @click="selectWeek(index)" :style="{ background: task.recycle.weekIndexs.has(index) ? task.label.color : '' }">{{ item }}</view>
+                        <view class="addTask-content-selectWeek" v-for="(item, index) in '一二三四五六日'" @click="selectWeekDay(index)" :style="{ background: task.recycle.weekIndexs.has(index) ? task.label.color : '' }">{{ item }}</view>
                     </view>
                 </view>
                 <!-- 按月循环的任务 -->
@@ -139,7 +153,6 @@
         data() {
             const now = new Date();
             now.setSeconds(0);
-            console.log(now.toLocaleString());
 
             return {
                 /** 全部任务标签 */
@@ -150,6 +163,7 @@
                 taskCountInput: '',
                 /** 任务是否永不结束 */
                 isForever: false,
+                /** 任务循环类型 */
                 taskRecycles: [
                     {
                         type: 'one',
@@ -168,23 +182,34 @@
                         text: '按月',
                     },
                 ],
+                /** 任务信息对象 */
                 task: {
+                    /** 任务打开次数 */
                     count: 1,
+                    /** 是否为全天任务 */
                     isAllDay: false,
+                    /** 任务标签，默认为第一个label */
                     label: {
                         color: taskLabelStorage.getAll()[0].color,
                         title: taskLabelStorage.getAll()[0].title,
                     },
+                    /** 任务循环 */
                     recycle: {
+                        /** 循环类型，one，day，week, moon */
                         type: 'one',
+                        /** 循环间隔 */
                         interval: 0,
+                        /** 周循环 */
                         weekIndexs: new Set([0, 1, 2, 3, 4]),
-                        moonIndexs: new Set([]),
-                        datetime: {
+                        /** 月循环 */
+                        moonIndexs: new Set([now.getDay()]),
+                        /** 任务非全天的执行时间 */
+                        time: {
                             start: now,
                             end: now,
                         },
                     },
+                    /** 任务存在的日期时间 */
                     datetime: {
                         start: now,
                         end: now,
@@ -193,13 +218,14 @@
             };
         },
         computed: {
+            /** 任务循环时间间隔提醒语句 */
             intervalTip() {
                 const {
                     taskRecycles,
                     task: {
                         recycle: { type, interval },
                     },
-                } = this.$data;
+                } = this;
                 const recycle = taskRecycles.find((r) => r.type == type);
                 const intervalText = recycle.text[1];
                 if (interval == 0) {
@@ -208,6 +234,7 @@
                     return `每隔${interval}${intervalText}就会创建一次任务`;
                 }
             },
+            /** 时间选择的时间区间长度 */
             intervalTime() {
                 const {
                     task: {
@@ -215,7 +242,7 @@
                         datetime: { start, end },
                         recycle: {type}
                     },
-                } = this.$data;
+                } = this;
                 const allMinutes = Math.round((end - start) / 1000 / 60);
                 let day;
                 if(type == 'one') {
@@ -231,68 +258,109 @@
             },
         },
         methods: {
-            changeTaskCount({ detail: { value } }) {
-                this.$data.taskCountInput = value <= 0 ? 1 : value;
-                this.$data.task.count = value <= 0 ? 1 : value;
+            /**
+             * @description: 选择开始执行时间
+             */
+            selecteTimeStart() {
+                window.$datetiemPicker({
+                    color: this.task.label.color,
+                    datetime: this.task.datetime.end,
+                    selectTime: true,
+                    selectDate: false,
+                    submit: (date) => {
+                        this.task.datetime.end = date;
+                    },
+                });
             },
-            selectWeek(weekIndex) {
+            /**
+             * @description: 事件回调：改变任务的打卡次数
+             */
+            changeTaskCount({ detail: { value } }) {
+                this.task.count = this.taskCountInput = value <= 0 ? 1 : value;
+            },
+            /**
+             * @description: 事件回调：选择周循环的莫一天，选择或取消
+             */
+            selectWeekDay(weekIndex) {
                 console.log(this.$datetimePicker);
                 const {
                     task: {
                         recycle: { weekIndexs },
                     },
-                } = this.$data;
+                } = this;
                 if (weekIndexs.has(weekIndex)) {
                     weekIndexs.delete(weekIndex);
                 } else {
                     weekIndexs.add(weekIndex);
                 }
             },
-            selectMoonStart(moonIndex) {
+            /**
+             * @description: 事件回调：选择月循环的莫一天，选择或取消
+             */
+            selectMoonDay(moonIndex) {
                 const {
                     task: {
                         recycle: { moonIndexs },
                     },
-                } = this.$data;
+                } = this;
                 if (moonIndexs.has(moonIndex)) {
                     moonIndexs.delete(moonIndex);
                 } else {
                     moonIndexs.add(moonIndex);
                 }
             },
-            selectMoonEnd(moonIndex) {
-                const {
-                    task: {
-                        recycle: { moonIndexs },
+            /**
+             * @description: 事件回调：选择任务整体开始时间
+             */
+            selecteTaskStart() {
+                window.$datetiemPicker({
+                    color: this.task.label.color,
+                    datetime: this.task.datetime.start,
+                    selectTime: !this.task.isAllDay,
+                    submit: (date) => {
+                        this.task.datetime.start = date;
+                        if (this.task.datetime.end < this.task.datetime.start) {
+                            this.task.datetime.end = this.task.datetime.start;
+                        }
                     },
-                } = this.$data;
-                if (moonIndexs.has(moonIndex)) {
-                    moonIndexs.delete(moonIndex);
-                } else {
-                    moonIndexs.add(moonIndex);
-                }
+                });
+            },
+            /**
+             * @description: 事件回调：选择任务整体结束时间
+             */
+            selecteTaskEnd() {
+                window.$datetiemPicker({
+                    color: this.task.label.color,
+                    datetime: this.task.datetime.end,
+                    minDatetime: this.task.datetime.start,
+                    selectTime: !this.task.isAllDay,
+                    submit: (date) => {
+                        this.task.datetime.end = date;
+                    },
+                });
             },
             selecteDatetimeStart() {
                 window.$datetiemPicker({
-                    color: this.$data.task.label.color,
-                    datetime: this.$data.task.datetime.start,
-                    selectTime: this.$data.task.recycle.type == 'one' && !this.$data.task.isAllDay,
+                    color: this.task.label.color,
+                    datetime: this.task.datetime.start,
+                    minDatetime: this.task.datetime.start,
+                    selectTime: this.task.recycle.type == 'one' && !this.task.isAllDay,
                     submit: (date) => {
-                        this.$data.task.datetime.start = date;
-                        if (this.$data.task.datetime.end < this.$data.task.datetime.start) {
-                            this.$data.task.datetime.end = this.$data.task.datetime.start;
+                        this.task.datetime.start = date;
+                        if (this.task.datetime.end < this.task.datetime.start) {
+                            this.task.datetime.end = this.task.datetime.start;
                         }
                     },
                 });
             },
             selecteDatetimeEnd() {
                 window.$datetiemPicker({
-                    color: this.$data.task.label.color,
-                    datetime: this.$data.task.datetime.end,
-                    minDatetime: this.$data.task.datetime.start,
-                    selectTime: this.$data.task.recycle.type == 'one' && !this.$data.task.isAllDay,
+                    color: this.task.label.color,
+                    datetime: this.task.datetime.end,
+                    minDatetime: this.task.datetime.start,
+                    selectTime: this.task.recycle.type == 'one' && !this.task.isAllDay,
                     submit: (date) => {
-                        this.$data.task.datetime.end = date;
+                        this.task.datetime.end = date;
                     },
                 });
             },
