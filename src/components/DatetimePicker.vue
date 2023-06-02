@@ -37,6 +37,7 @@
                 <view class="datetimePicker-button" :style="`background:${color}`" @click="cancelHandel">取消</view>
             </view>
         </view>
+        <view />
     </view>
 </template>
 
@@ -106,7 +107,7 @@
         },
         watch: {
             isShowSelectHours(data) {
-                if(!data) return;
+                if (!data) return;
                 this.$nextTick(() => {
                     const hoursContDom = this.$refs.selectHours.$el;
                     const contWidth = parseInt(getComputedStyle(hoursContDom).width);
@@ -117,14 +118,15 @@
                 });
             },
             isShowSelectMinute(data) {
-                if(!data) return;
+                if (!data) return;
                 this.$nextTick(() => {
                     const minuteContDom = this.$refs.selectMinute.$el;
                     const contWidth = parseInt(getComputedStyle(minuteContDom).width);
                     const sty = getComputedStyle(minuteContDom.firstElementChild);
                     const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
                     minuteContDom.scrollLeft = this.minute * itemWidth - contWidth / 2 + itemWidth / 2;
-                });},
+                });
+            },
         },
         computed: {
             // 获取当前月的日期时间，数组中每天都为一个数组：[年，月，日]

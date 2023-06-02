@@ -79,8 +79,8 @@
                     <view class="addTask-content-titleLine">
                         <view class="addTask-content-subTitle">任务日期：</view>
                         <view class="addTask-content-dateTypes">
-                            <view class="addTask-content-dateType" :style="{ background: !task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">存在结束</view>
-                            <view class="addTask-content-dateType" :style="{ background: task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">永不结束</view>
+                            <view class="addTask-content-dateType" :style="{ background: !task.isForever ? task.label.color : '' }" @click="task.isForever = false">存在结束</view>
+                            <view class="addTask-content-dateType" :style="{ background: task.isForever ? task.label.color : '' }" @click="task.isForever = true">永不结束</view>
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="!task.isForever">
@@ -97,9 +97,7 @@
                             {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
                         <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共N天</view>
-                        <view class="addTask-content-datetime-select" @click="selecteTimeEnd">
-                            ----/--/--
-                        </view>
+                        <view class="addTask-content-datetime-select" @click="selecteTimeEnd">----/--/--</view>
                     </view>
                     <!-- 执行时间 -->
                     <view class="addTask-content-titleLine">
@@ -118,10 +116,9 @@
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="task.isAllDay">
-                        <view/>
+                        <view />
                         全天
-                        <view/>
-
+                        <view />
                     </view>
                 </view>
                 <!-- 按周循环的任务 -->
@@ -240,20 +237,20 @@
                     task: {
                         isAllDay,
                         datetime: { start, end },
-                        recycle: {type}
+                        recycle: { type },
                     },
                 } = this;
                 const allMinutes = Math.round((end - start) / 1000 / 60);
                 let day;
-                if(type == 'one') {
-                    day = isAllDay ? (Math.ceil(allMinutes / 60 / 24) + 1) : Math.floor(allMinutes / 60 / 24);
+                if (type == 'one') {
+                    day = isAllDay ? Math.ceil(allMinutes / 60 / 24) + 1 : Math.floor(allMinutes / 60 / 24);
                 } else {
                     day = Math.ceil(allMinutes / 60 / 24) + 1;
                 }
                 return {
                     day,
                     hours: Math.floor((allMinutes % (60 * 24)) / 60),
-                    minutes: allMinutes % 60 + 1,
+                    minutes: (allMinutes % 60) + 1,
                 };
             },
         },
