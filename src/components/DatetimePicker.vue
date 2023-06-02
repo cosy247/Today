@@ -106,26 +106,23 @@
             };
         },
         watch: {
-            isShowSelectHours(data) {
+            async isShowSelectHours(data) {
                 if (!data) return;
-                this.$nextTick(() => {
-                    const hoursContDom = this.$refs.selectHours.$el;
-                    const contWidth = parseInt(getComputedStyle(hoursContDom).width);
-                    const sty = getComputedStyle(hoursContDom.firstElementChild);
-                    const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
-                    console.log(this.hours * itemWidth);
-                    hoursContDom.scrollLeft = this.hours * itemWidth - contWidth / 2 + itemWidth / 2;
-                });
+                await this.$nextTick();
+                const hoursContDom = this.$refs.selectHours.$el;
+                const contWidth = parseInt(getComputedStyle(hoursContDom).width);
+                const sty = getComputedStyle(hoursContDom.firstElementChild);
+                const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
+                hoursContDom.scrollLeft = this.hours * itemWidth - contWidth / 2 + itemWidth / 2;
             },
-            isShowSelectMinute(data) {
+            async isShowSelectMinute(data) {
                 if (!data) return;
-                this.$nextTick(() => {
-                    const minuteContDom = this.$refs.selectMinute.$el;
-                    const contWidth = parseInt(getComputedStyle(minuteContDom).width);
-                    const sty = getComputedStyle(minuteContDom.firstElementChild);
-                    const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
-                    minuteContDom.scrollLeft = this.minute * itemWidth - contWidth / 2 + itemWidth / 2;
-                });
+                await this.$nextTick();
+                const minuteContDom = this.$refs.selectMinute.$el;
+                const contWidth = parseInt(getComputedStyle(minuteContDom).width);
+                const sty = getComputedStyle(minuteContDom.firstElementChild);
+                const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
+                minuteContDom.scrollLeft = this.minute * itemWidth - contWidth / 2 + itemWidth / 2;
             },
         },
         computed: {
