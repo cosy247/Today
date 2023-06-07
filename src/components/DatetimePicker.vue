@@ -1,7 +1,7 @@
 <template>
     <view :class="{ 'datetimePicker-root': 1, 'datetimePicker-show': show }">
-        <view class="datetimePicker-mask" @click="cancelHandel"></view>
-        <view class="datetimePicker-main">
+        <view :class="{ 'datetimePicker-mask': 1, 'datetimePicker-show': show }" @click="cancelHandel"></view>
+        <view :class="{ 'datetimePicker-date': 1, 'datetimePicker-show': selectDate && show }">
             <view class="datetimePicker-header">
                 <view class="datetimePicker-header-today font" @click="goToday">今天</view>
                 <view @click="lastYear">&#xe641;</view>
@@ -37,6 +37,26 @@
                 <view class="datetimePicker-button" :style="`background:${color}`" @click="cancelHandel">取消</view>
             </view>
         </view>
+        <view :class="{ 'datetimePicker-t': 1, 'datetimePicker-show': !selectDate && show }">
+            <view class="datetimePicker-t-hour" ref="tHour" @scroll="scrollTHour">
+                <view class="datetimePicker-t-hour-item" v-for="(item, index) in 24">
+                    {{ index }}
+                    <view class="datetimePicker-t-tip">时</view>
+                </view>
+            </view>
+            <view class="datetimePicker-t-minute" ref="tMinute" @scroll="scrollTMinute">
+                <view class="datetimePicker-t-minute-item" v-for="(item, index) in 60">
+                    {{ index }}
+                    <view class="datetimePicker-t-tip">分</view>
+                </view>
+            </view>
+            <view class="datetimePicker-t-current" :style="`background:${color}`">:</view>
+            <view class="datetimePicker-t-buttons">
+                <view class="datetimePicker-t-button" @click="cancelHandel">取消</view>
+                <view class="datetimePicker-t-line"></view>
+                <view class="datetimePicker-t-button" @click="submitHandel">确定</view>
+            </view>
+        </view>
     </view>
 </template>
 
@@ -47,7 +67,7 @@
 
             // 定义全局函数调用时间选择器
             window.$datetiemPicker = (props = {}) => {
-                const { datetime = now, color = '#007aff', maxDatetime, minDatetime, selectTime = true, submit, cancel } = props;
+                const { datetime = now, color = '#007aff', maxDatetime, minDatetime, selectDate = true, selectTime = true, submit, cancel } = props;
                 const date = new Date(datetime);
 
                 this.year = date.getFullYear();
@@ -56,6 +76,7 @@
                 this.hours = date.getHours();
                 this.minute = date.getMinutes();
 
+                this.selectDate = selectDate;
                 this.selectTime = selectTime;
                 this.minDatetime = minDatetime ? new Date(minDatetime).toLocaleString().split(/ |\/|:/) : ['0', '0', '0', '0', '0', '0'];
                 this.maxDatetime = maxDatetime ? new Date(maxDatetime).toLocaleString().split(/ |\/|:/) : ['9999', '0', '0', '0', '0', '0'];
@@ -67,11 +88,14 @@
                 this.show = true;
                 this.isShowSelectHours = false;
                 this.isShowSelectMinute = false;
+
+                /** 如果只是选择时间不选择日期，那么显示当前传入的时间 */
+                !selectDate && this.scrollPickerTime();
             };
 
             return {
                 /** 主題顔色 */
-                color: '#ff7aff',
+                color: '#22a6f2',
 
                 /** 年份 */
                 year: now.getFullYear(),
@@ -84,8 +108,10 @@
                 /** 分钟 */
                 minute: now.getMinutes(),
 
-                /** 小时时间是否可算 */
-                selectTime: false,
+                /** 日期时间是否可选 */
+                selectDate: true,
+                /** 小时时间是否可选 */
+                selectTime: true,
                 /** 最小选择时间，[年，月，日，小时，分钟，秒] */
                 minDatetime: ['0', '0', '0', '0', '0', '0'],
                 /** 最大选择时间，[年，月，日，小时，分钟，秒] */
@@ -102,29 +128,35 @@
                 isShowSelectHours: false,
                 /** 是否显示分钟选择器 */
                 isShowSelectMinute: false,
+
+                /** 时间选择的单个时间dom高度 */
+                timeTimeHeihgt: 0,
+                /** 时间选择的滚动分钟停止回调id */
+                scrollMinuteTimeoutId: 0,
+                /** 时间选择的滚动分钟修正回调id */
+                scrollMinuteReviseId: 0,
             };
         },
         watch: {
-            isShowSelectHours(data) {
-                if(!data) return;
-                this.$nextTick(() => {
-                    const hoursContDom = this.$refs.selectHours.$el;
-                    const contWidth = parseInt(getComputedStyle(hoursContDom).width);
-                    const sty = getComputedStyle(hoursContDom.firstElementChild);
-                    const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
-                    console.log(this.hours * itemWidth);
-                    hoursContDom.scrollLeft = this.hours * itemWidth - contWidth / 2 + itemWidth / 2;
-                });
+            async isShowSelectHours(value) {
+                if (!value) return;
+                await $this.$nextTick();
+                const hoursContDom = this.$refs.selectHours.$el;
+                const contWidth = parseInt(getComputedStyle(hoursContDom).width);
+                const sty = getComputedStyle(hoursContDom.firstElementChild);
+                const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
+                console.log(this.hours * itemWidth);
+                hoursContDom.scrollLeft = this.hours * itemWidth - contWidth / 2 + itemWidth / 2;
             },
-            isShowSelectMinute(data) {
-                if(!data) return;
-                this.$nextTick(() => {
-                    const minuteContDom = this.$refs.selectMinute.$el;
-                    const contWidth = parseInt(getComputedStyle(minuteContDom).width);
-                    const sty = getComputedStyle(minuteContDom.firstElementChild);
-                    const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
-                    minuteContDom.scrollLeft = this.minute * itemWidth - contWidth / 2 + itemWidth / 2;
-                });},
+            async isShowSelectMinute(value) {
+                if (!value) return;
+                await $this.$nextTick();
+                const minuteContDom = this.$refs.selectMinute.$el;
+                const contWidth = parseInt(getComputedStyle(minuteContDom).width);
+                const sty = getComputedStyle(minuteContDom.firstElementChild);
+                const itemWidth = parseFloat(sty.width) + parseFloat(sty.marginLeft) + parseFloat(sty.marginRight);
+                minuteContDom.scrollLeft = this.minute * itemWidth - contWidth / 2 + itemWidth / 2;
+            },
         },
         computed: {
             // 获取当前月的日期时间，数组中每天都为一个数组：[年，月，日]
@@ -203,6 +235,52 @@
                 this.show = false;
                 typeof cancel == 'function' && cancel;
             },
+            /**
+             * @description: 滚动事件选择的时间位置
+             */
+            scrollPickerTime() {
+                if (!this.timeTimeHeihgt) {
+                    this.timeTimeHeihgt = this.$refs.tHour.$el.firstElementChild.clientHeight;
+                }
+                this.$refs.tHour.$el.scrollTop = this.timeTimeHeihgt * this.hours;
+                this.$refs.tMinute.$el.scrollTop = this.timeTimeHeihgt * this.minute;
+            },
+            /**
+             * @description: 时间选择，滚动分钟停止回调
+             */
+            scrollTHour(event) {
+                clearTimeout(this.scrollHourTimeoutId);
+                clearInterval(this.scrollHourReviseId);
+                this.scrollHourTimeoutId = setTimeout(() => {
+                    this.hours = Math.round(this.$refs.tHour.$el.scrollTop / this.timeTimeHeihgt);
+                    const toScrollTop = this.timeTimeHeihgt * this.hours;
+                    this.scrollHourReviseId = setInterval(() => {
+                        this.$refs.tHour.$el.scrollTop += (toScrollTop - this.$refs.tHour.$el.scrollTop) / 2;
+                        if (Math.abs(this.$refs.tHour.$el.scrollTop - toScrollTop) <= 2) {
+                            this.$refs.tHour.$el.scrollTop = toScrollTop;
+                            clearInterval(this.scrollHourReviseId);
+                        }
+                    }, 10);
+                }, 66);
+            },
+            /**
+             * @description: 时间选择，滚动分钟停止回调
+             */
+            scrollTMinute(event) {
+                clearTimeout(this.scrollMinuteTimeoutId);
+                clearInterval(this.scrollMinuteReviseId);
+                this.scrollMinuteTimeoutId = setTimeout(() => {
+                    this.minute = Math.round(this.$refs.tMinute.$el.scrollTop / this.timeTimeHeihgt);
+                    const toScrollTop = this.timeTimeHeihgt * this.minute;
+                    this.scrollMinuteReviseId = setInterval(() => {
+                        this.$refs.tMinute.$el.scrollTop += (toScrollTop - this.$refs.tMinute.$el.scrollTop) / 2;
+                        if (Math.abs(this.$refs.tMinute.$el.scrollTop - toScrollTop) <= 2) {
+                            this.$refs.tMinute.$el.scrollTop = toScrollTop;
+                            clearInterval(this.scrollMinuteReviseId);
+                        }
+                    }, 10);
+                }, 66);
+            },
         },
     };
 </script>
@@ -217,7 +295,7 @@
         z-index: 9999;
         pointer-events: none;
     }
-    .datetimePicker-show {
+    .datetimePicker-root.datetimePicker-show {
         pointer-events: auto;
     }
     .datetimePicker-mask {
@@ -230,10 +308,10 @@
         z-index: -1;
         transition: 0.3s;
     }
-    .datetimePicker-show > .datetimePicker-mask {
+    .datetimePicker-show.datetimePicker-mask {
         background: #8888;
     }
-    .datetimePicker-main {
+    .datetimePicker-date {
         position: absolute;
         bottom: -100%;
         left: 0;
@@ -244,7 +322,7 @@
         font-size: var(--fontSize-s);
         transition: 0.3s;
     }
-    .datetimePicker-show > .datetimePicker-main {
+    .datetimePicker-show.datetimePicker-date {
         bottom: 0%;
     }
     .datetimePicker-header {
@@ -351,4 +429,83 @@
         color: #888;
         pointer-events: none;
     }
+    .datetimePicker-t {
+        position: absolute;
+        left: 50%;
+        top: 150%;
+        transform: translate(-50%, -50%);
+        width: 500rpx;
+        height: 500rpx;
+        padding: 10rpx 50rpx 100rpx;
+        box-sizing: border-box;
+        background: white;
+        border-radius: 40rpx;
+        box-shadow: 0 0 10px #8888;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: 0.3s;
+    }
+    .datetimePicker-show.datetimePicker-t {
+        top: 50%;
+    }
+    .datetimePicker-t-current {
+        position: absolute;
+        text-align: center;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -115%);
+        height: 60rpx;
+        line-height: 55rpx;
+        background: #9998;
+        border-radius: 100rpx;
+        width: 80%;
+    }
+    .datetimePicker-t-hour,
+    .datetimePicker-t-minute {
+        width: 50%;
+        height: 100%;
+        padding: 170rpx 0 160rpx;
+        box-sizing: border-box;
+        text-align: center;
+        overflow: auto;
+    }
+    .datetimePicker-t-hour-item,
+    .datetimePicker-t-minute-item {
+        font-size: 40rpx;
+        font-weight: 100;
+        line-height: 70rpx;
+    }
+    .datetimePicker-t-tip {
+        font-size: 20rpx;
+        display: inline;
+    }
+    .datetimePicker-t-buttons {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 90rpx;
+        border-top: 1px solid #888;
+    }
+    .datetimePicker-t-line {
+        height: 40rpx;
+        width: 1px;
+        margin: 0 70rpx;
+        background: #888;
+    }
+    /* .datetimePicker-t-button {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-evenly;
+        width: 100%;
+        height: 90rpx;
+        border-top: 1px solid #888;
+    } */
 </style>
