@@ -192,12 +192,72 @@
                 </view>
                 <!-- 按月循环的任务 -->
                 <view v-show="task.recycle.type == 'moon'">
+                    <!-- 任务间隔 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">任务间隔：</view>
+                    </view>
+                    <view class="addTask-content-interval">
+                        <view class="addTask-content-tip">
+                            {{ intervalTip }}
+                        </view>
+                        <view class="addTask-content-interval-count">
+                            <view class="addTask-content-interval-option" @click="task.recycle.interval != 0 && task.recycle.interval--">&#xea6d;</view>
+                            <view :style="{ color: task.label.color }">{{ task.recycle.interval }}天</view>
+                            <view class="addTask-content-interval-option" @click="task.recycle.interval++">&#xea6e;</view>
+                        </view>
+                    </view>
+                    <!-- 时间选择 -->
                     <view class="addTask-content-titleLine">
                         <view class="addTask-content-subTitle">时间选择：</view>
                     </view>
                     <view class="addTask-content-selectMoons">
                         <view class="addTask-content-selectMoon" v-for="(item, index) in 31" @click="selectMoonStart(index)" :style="{ background: task.recycle.moonIndexs.has(index) ? task.label.color : '' }">{{ item }}</view>
                         <view class="addTask-content-clearMoon" @click="task.recycle.moonIndexs = new Set()">清空</view>
+                    </view>
+                    <!-- 任务日期 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">任务日期：</view>
+                        <view class="addTask-content-dateTypes">
+                            <view class="addTask-content-dateType" :style="{ background: !task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">存在结束</view>
+                            <view class="addTask-content-dateType" :style="{ background: task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">永不结束</view>
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="!task.isForever">
+                        <view class="addTask-content-datetime-select" @click="selecteDateStart">
+                            {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ intervalTime.day }}天</view>
+                        <view class="addTask-content-datetime-select" @click="selecteDateEnd">
+                            {{ task.datetime.end.toLocaleDateString().slice(0, 10) }}
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="task.isForever">
+                        <view class="addTask-content-datetime-select" @click="selecteDateStart">
+                            {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共N天</view>
+                        <view class="addTask-content-datetime-select">----/--/--</view>
+                    </view>
+                    <!-- 执行时间 -->
+                    <view class="addTask-content-titleLine">
+                        <view class="addTask-content-subTitle">执行时间：</view>
+                        <view class="addTask-content-dateTypes">
+                            <view class="addTask-content-dateType" v-for="(item, index) in ['全天', '非全天']" :style="{ background: index == task.isAllDay ? '' : task.label.color }" @click="task.isAllDay = !index">{{ item }}</view>
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="!task.isAllDay">
+                        <view class="addTask-content-datetime-select" @click="selecteTimeStart">
+                            {{ task.recycle.time.start.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalRuntime.hours).padStart(2, 0) }}:{{ String(intervalRuntime.minutes).padStart(2, 0) }}小时</view>
+                        <view class="addTask-content-datetime-select" @click="selecteTimeEnd">
+                            {{ task.recycle.time.end.toLocaleTimeString().slice(0, 5) }}
+                        </view>
+                    </view>
+                    <view class="addTask-content-datetime" v-show="task.isAllDay">
+                        <view />
+                        全天
+                        <view />
                     </view>
                 </view>
             </view>
