@@ -84,22 +84,20 @@
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="!task.isForever">
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
+                        <view class="addTask-content-datetime-select" @click="selecteDateStart">
                             {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
                         <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ intervalTime.day }}天</view>
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
+                        <view class="addTask-content-datetime-select" @click="selecteDateEnd">
                             {{ task.datetime.end.toLocaleDateString().slice(0, 10) }}
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="task.isForever">
-                        <view class="addTask-content-datetime-select" @click="selecteTimeStart">
+                        <view class="addTask-content-datetime-select" @click="selecteDateStart">
                             {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
                         <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共N天</view>
-                        <view class="addTask-content-datetime-select" @click="selecteTimeEnd">
-                            ----/--/--
-                        </view>
+                        <view class="addTask-content-datetime-select">----/--/--</view>
                     </view>
                     <!-- 执行时间 -->
                     <view class="addTask-content-titleLine">
@@ -109,19 +107,18 @@
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="!task.isAllDay">
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeStart">
+                        <view class="addTask-content-datetime-select" @click="selecteTimeStart">
                             {{ task.recycle.time.start.toLocaleTimeString().slice(0, 5) }}
                         </view>
-                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalTime.hours).padStart(2, 0) }}:{{ String(intervalTime.minutes).padStart(2, 0) }}小时</view>
-                        <view class="addTask-content-datetime-select" @click="selecteDatetimeEnd">
+                        <view class="addTask-content-datetime-tip" :style="{ color: task.label.color }">共{{ String(intervalRuntime.hours).padStart(2, 0) }}:{{ String(intervalRuntime.minutes).padStart(2, 0) }}小时</view>
+                        <view class="addTask-content-datetime-select" @click="selecteTimeEnd">
                             {{ task.recycle.time.end.toLocaleTimeString().slice(0, 5) }}
                         </view>
                     </view>
                     <view class="addTask-content-datetime" v-show="task.isAllDay">
-                        <view/>
+                        <view />
                         全天
-                        <view/>
-
+                        <view />
                     </view>
                 </view>
                 <!-- 按周循环的任务 -->
@@ -240,38 +237,41 @@
                     task: {
                         isAllDay,
                         datetime: { start, end },
-                        recycle: {type}
+                        recycle: { type },
                     },
                 } = this;
                 const allMinutes = Math.round((end - start) / 1000 / 60);
                 let day;
-                if(type == 'one') {
-                    day = isAllDay ? (Math.ceil(allMinutes / 60 / 24) + 1) : Math.floor(allMinutes / 60 / 24);
+                if (type == 'one') {
+                    day = isAllDay ? Math.ceil(allMinutes / 60 / 24) + 1 : Math.floor(allMinutes / 60 / 24);
                 } else {
                     day = Math.ceil(allMinutes / 60 / 24) + 1;
                 }
                 return {
                     day,
                     hours: Math.floor((allMinutes % (60 * 24)) / 60),
-                    minutes: allMinutes % 60 + 1,
+                    minutes: (allMinutes % 60) + 1,
+                };
+            },
+            /** intervalRuntime */
+            intervalRuntime() {
+                const {
+                    task: {
+                        recycle: {
+                            time: { start, end },
+                        },
+                    },
+                } = this;
+                const allMinute = Math.round(((end - start) / 1000 / 60) % (60 * 24)) + 1;
+                console.log(allMinute);
+
+                return {
+                    hours: Math.floor(allMinute / 60),
+                    minutes: allMinute % 60,
                 };
             },
         },
         methods: {
-            /**
-             * @description: 选择开始执行时间
-             */
-            selecteTimeStart() {
-                window.$datetiemPicker({
-                    color: this.task.label.color,
-                    datetime: this.task.datetime.end,
-                    selectTime: true,
-                    selectDate: false,
-                    submit: (date) => {
-                        this.task.datetime.end = date;
-                    },
-                });
-            },
             /**
              * @description: 事件回调：改变任务的打卡次数
              */
@@ -339,7 +339,7 @@
                     },
                 });
             },
-            selecteDatetimeStart() {
+            selecteDateStart() {
                 window.$datetiemPicker({
                     color: this.task.label.color,
                     datetime: this.task.datetime.start,
@@ -353,7 +353,7 @@
                     },
                 });
             },
-            selecteDatetimeEnd() {
+            selecteDateEnd() {
                 window.$datetiemPicker({
                     color: this.task.label.color,
                     datetime: this.task.datetime.end,
@@ -361,6 +361,32 @@
                     selectTime: this.task.recycle.type == 'one' && !this.task.isAllDay,
                     submit: (date) => {
                         this.task.datetime.end = date;
+                    },
+                });
+            },
+            selecteTimeStart() {
+                window.$datetiemPicker({
+                    color: this.task.label.color,
+                    datetime: this.task.recycle.time.start,
+                    selectDate: false,
+                    submit: (date) => {
+                        this.task.recycle.time.start = date;
+                        if (this.task.recycle.time.end < this.task.recycle.time.start) {
+                            this.task.recycle.time.end = this.task.recycle.time.start;
+                        }
+                    },
+                });
+            },
+            selecteTimeEnd() {
+                window.$datetiemPicker({
+                    color: this.task.label.color,
+                    datetime: this.task.recycle.time.end,
+                    selectDate: false,
+                    submit: (date) => {
+                        this.task.recycle.time.end = date;
+                        if (this.task.recycle.time.end < this.task.recycle.time.start) {
+                            this.task.recycle.time.end = this.task.recycle.time.start;
+                        }
                     },
                 });
             },
