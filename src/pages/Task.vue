@@ -17,17 +17,18 @@
         <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" />
     </view>
     <DatetimePickerVue />
+    <MessageBox />
 </template>
 
 <script>
-    import { ref } from 'vue';
     import task from '../storage/task.js';
     import Tab from '../components/Tab';
     import AddTask from './AddTask';
     import DatetimePickerVue from '../components/DatetimePicker.vue';
+    import MessageBox from '../components/MessageBox.vue';
 
     export default {
-        components: { Tab, AddTask, DatetimePickerVue },
+        components: { Tab, AddTask, DatetimePickerVue, MessageBox },
         data: () => ({
             tasks: task.getAll(),
             showAddTask: false,
