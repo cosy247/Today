@@ -9,7 +9,7 @@
             <view class="task-empty" v-if="tasks.length == 0">
                 <view class="task-empty-text font">点击右上角加号添加任务</view>
             </view>
-            <view v-for="(task, index) in tasks" :key="task.id" :class="{'task-item':1, 'task-item-deling': taskInfos[index].isDelete}">
+            <view v-for="(task, index) in tasks" :key="task.id" :class="{ 'task-item': 1, 'task-item-deling': taskInfos[index].isDelete }">
                 <view class="task-item-cont" :style="`right: ${taskInfos[index].offset}px; transition: right ${taskInfos[index].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(index, $event)" @touchstart="taskItemTouchStart(index, $event)" @touchend="taskItemTouchEnd(index, $event)" @click="countTask(task)">
                     <view class="task-item-title">{{ task.title }}</view>
                     <view class="task-item-info">
@@ -18,14 +18,18 @@
                     </view>
                     <view class="task-item-range" :style="`background: ${task.label.color}; width: ${(task.do.count * 100) / task.count}%; border-color: ${task.label.color};`"></view>
                 </view>
-                <view class="task-item-delete" :style="`opacity: ${taskInfos[index].offset / this.touchOffsetMax}`" @click="deleteTask(task, index)">&#xe658;</view>
+                <view class="task-item-options" :style="`opacity: ${taskInfos[index].offset / this.touchOffsetMax}`">
+                    <view class="task-item-option" @click="editTask(task, index)">&#xe622;</view>
+                    <view class="task-item-option" @click="resetTask(task, index)">&#xe648;</view>
+                    <view class="task-item-option" @click="deleteTask(task, index)">&#xe658;</view>
+                </view>
             </view>
         </view>
     </view>
 
     <!-- 实例 -->
     <Tab class="task-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
-    <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" />
+    <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" :taskData="addTaskData" />
 
     <!-- 单例 -->
     <DatetimePickerVue />
@@ -51,10 +55,12 @@
                 showAddTask: false,
                 /** 任务条触摸开始的x */
                 touchStartX: 0,
-                /** 任务条触摸结束的x */
-                touchEndX: 0,
+                /** 任务条触摸开始的时间 */
+                touchStartTime: 0,
                 /** 任务条滑动最大值 */
-                touchOffsetMax: uni.upx2px(60),
+                touchOffsetMax: uni.upx2px(190),
+                /** 任务添加的默认数据，用户任务修改 */
+                addTaskData: {}
             };
         },
         methods: {
@@ -108,31 +114,47 @@
              */
             taskItemTouchStart(index, { touches: [{ clientX }] }) {
                 this.touchStartX = clientX + (this.taskInfos[index].offset || 0);
+                this.touchStartTime = +Date.now().valueOf();
                 this.taskInfos[index].isTouch = true;
             },
             /**
              * @description: 移动taskItem
              */
             taskItemTouchMove(index, { touches: [{ clientX }] }) {
-                this.touchEndX = clientX;
-                this.taskInfos[index].offset = this.touchStartX - this.touchEndX;
+                this.taskInfos[index].offset = this.touchStartX - clientX;
             },
             /**
              * @description: 移动taskItem结束
              */
             taskItemTouchEnd(index) {
                 this.taskInfos[index].isTouch = false;
-                if (this.taskInfos[index].offset >= this.touchOffsetMax) {
+                if (this.taskInfos[index].offset >= this.touchOffsetMax || this.taskInfos[index].offset / (+Date.now().valueOf() - this.touchStartTime) > 1) {
                     this.taskInfos[index].offset = this.touchOffsetMax;
                 } else {
                     this.taskInfos[index].offset = 0;
                 }
             },
             /**
+             * @description: 点击任务编辑事件回调
+             */
+            editTask(task, index) {
+                this.taskInfos[index].offset = 0;
+                this.addTaskData = task;
+                this.showAddTask = true;
+            },
+            /**
+             * @description: 点击任务重置事件回调
+             */
+            resetTask(task, index) {
+                task.do.count = 0;
+                this.taskInfos[index].offset = 0;
+            },
+            /**
              * @description: 点击任务删除事件回调
              */
             deleteTask({ id }, index) {
                 this.taskInfos[index].isDelete = true;
+                this.taskInfos[index].offset = 0;
                 setTimeout(() => {
                     task.remove(id);
                     this.updateData();
@@ -241,12 +263,16 @@
         box-sizing: border-box;
         border-left: 20rpx solid inherit;
     }
-    .task-item-delete {
+    .task-item-options {
         position: absolute;
         right: 10rpx;
         top: 50%;
-        font-size: 30rpx;
+        font-size: 40rpx;
         transform: translateY(-50%);
+        display: flex;
+    }
+    .task-item-option {
+        margin-left: 10px;
     }
     .task-tab {
         transition: 0.3s;

@@ -156,13 +156,26 @@
 <script>
     import taskLabelStorage from '../storage/taskLabel.js';
     import taskStorage from '../storage/task.js';
+    import { watch } from 'vue';
 
     export default {
-        props: ['hide'],
+        props: ['hide', 'taskData'],
         data() {
             const now = new Date();
             now.setSeconds(0);
-
+            watch(
+                () => this.$props.taskData,
+                () => {
+                    this.task = {...this.task, ...this.$props.taskData}
+                    console.log('---',this.task.recycle);
+                    this.task.recycle.weekIndexs = new Set(this.task.recycle.weekIndexs);
+                    this.task.recycle.moonIndexs = new Set(this.task.recycle.moonIndexs);
+                    this.task.recycle.time.start = new Date(this.task.recycle.time.start);
+                    this.task.recycle.time.end = new Date(this.task.recycle.time.end);
+                    this.task.datetime.start = new Date(this.task.datetime.start);
+                    this.task.datetime.end = new Date(this.task.datetime.end);
+                }
+            );
             return {
                 /** 全部任务标签 */
                 labels: taskLabelStorage.getAll(),
@@ -286,6 +299,11 @@
                     hours: Math.floor(allMinute / 60),
                     minutes: allMinute % 60,
                 };
+            },
+        },
+        watch: {
+            $props() {
+                console.log(123);
             },
         },
         methods: {
