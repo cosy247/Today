@@ -137,16 +137,17 @@
                     </view>
                 </view>
             </view>
+            <!-- 任务地点 -->
             <view class="addTask-content-titleLine">
                 <view class="addTask-content-subTitle">任务地点</view>
                 <view class="addTask-content-dateTypes">
-                    <picker :range="commonAddresses" range-key="addr" @change="selectTaskAddr">
+                    <picker :range="commonAddresses" @change="selectTaskAddr">
                         <view class="addTask-content-selectAddr">常用地点</view>
                     </picker>
                 </view>
             </view>
             <view class="addTask-content-addr">
-                <input v-model="task.addr" placeholder="无指定地点"/>
+                <input v-model="task.addr" placeholder="无指定地点" />
             </view>
         </view>
     </view>
@@ -190,12 +191,7 @@
                     },
                 ],
                 /** 常用任务地址 */
-                commonAddresses: [
-                    { id: 1, addr: '家' },
-                    { id: 2, addr: '公司' },
-                    { id: 3, addr: '学校' },
-                    { id: 4, addr: '公园' },
-                ],
+                commonAddresses: ['家', '公司', '学校', '公园'],
                 /** 任务信息对象 */
                 task: {
                     /** 任务标题 */
@@ -359,6 +355,9 @@
                     },
                 });
             },
+            /**
+             * @description: 选择任务开始日期
+             */
             selecteDateStart() {
                 window.$datetiemPicker({
                     color: this.task.label.color,
@@ -373,6 +372,9 @@
                     },
                 });
             },
+            /**
+             * @description: 选择任务结束日期
+             */
             selecteDateEnd() {
                 window.$datetiemPicker({
                     color: this.task.label.color,
@@ -384,6 +386,9 @@
                     },
                 });
             },
+            /**
+             * @description: 选择任务执行开始时间
+             */
             selecteTimeStart() {
                 window.$datetiemPicker({
                     color: this.task.label.color,
@@ -397,6 +402,9 @@
                     },
                 });
             },
+            /**
+             * @description: 选择任务执行结束时间
+             */
             selecteTimeEnd() {
                 window.$datetiemPicker({
                     color: this.task.label.color,
@@ -410,17 +418,25 @@
                     },
                 });
             },
+            /**
+             * @description: 选择任务常用地址回调
+             */
             selectTaskAddr({ detail: { value } }) {
-                this.task.addr = this.commonAddresses[value].addr;
+                this.task.addr = this.commonAddresses[value];
             },
+            /**
+             * @description: 创建任务
+             */
             createTak() {
-                if(this.task.title) {
+                if (!this.task.title) {
                     window.$message({
                         type: 'warning',
-                        text: '请输入任务标题'
-                    })
+                        text: '请输入任务标题',
+                    });
+                    return;
                 }
-            }
+                this.$props.hide();
+            },
         },
     };
 </script>
