@@ -9,13 +9,25 @@
             <view class="task-empty" v-if="tasks.length == 0">
                 <view class="task-empty-text font">点击右上角加号添加任务</view>
             </view>
-            <view v-for="task in tasks" :key="task.id" class="task-item" :style="`background: ${task.background}`">
-                <view>{{ task.title }}</view>
+            <view v-for="(task, index) in tasks" :key="task.id" :class="{'task-item':1, 'task-item-deling': taskInfos[index].isDelete}">
+                <view class="task-item-cont" :style="`right: ${taskInfos[index].offset}px; transition: right ${taskInfos[index].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(index, $event)" @touchstart="taskItemTouchStart(index, $event)" @touchend="taskItemTouchEnd(index, $event)" @click="countTask(task)">
+                    <view class="task-item-title">{{ task.title }}</view>
+                    <view class="task-item-info">
+                        <view class="task-item-info-time" v-show="taskInfos[index].datatime">&#xe60f;&nbsp;{{ taskInfos[index].datatime }}</view>
+                        <view class="task-item-info-addr" v-show="task.addr">&#xe615;&nbsp;{{ task.addr }}</view>
+                    </view>
+                    <view class="task-item-range" :style="`background: ${task.label.color}; width: ${(task.do.count * 100) / task.count}%; border-color: ${task.label.color};`"></view>
+                </view>
+                <view class="task-item-delete" :style="`opacity: ${taskInfos[index].offset / this.touchOffsetMax}`" @click="deleteTask(task, index)">&#xe658;</view>
             </view>
         </view>
-        <Tab class="task-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
-        <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" />
     </view>
+
+    <!-- 实例 -->
+    <Tab class="task-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
+    <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" />
+
+    <!-- 单例 -->
     <DatetimePickerVue />
     <MessageBox />
 </template>
@@ -29,13 +41,110 @@
 
     export default {
         components: { Tab, AddTask, DatetimePickerVue, MessageBox },
-        data: () => ({
-            tasks: task.getAll(),
-            showAddTask: false,
-        }),
+        data() {
+            return {
+                /** 任务列表 */
+                tasks: task.getAll(),
+                /** 任务单位置x偏移量[{offset,isTouch}] */
+                taskInfos: task.getAll().map((item) => ({ offset: 0, isTouch: false, datatime: this.getItemDatatime(item), isDelete: false })),
+                /** 是否显示添加任务界面 */
+                showAddTask: false,
+                /** 任务条触摸开始的x */
+                touchStartX: 0,
+                /** 任务条触摸结束的x */
+                touchEndX: 0,
+                /** 任务条滑动最大值 */
+                touchOffsetMax: uni.upx2px(60),
+            };
+        },
         methods: {
+            /**
+             * @description: 任务更新数据
+             */
+            updateData() {
+                this.tasks = task.getAll();
+                console.log(this.tasks);
+                this.taskInfos = this.tasks.map((item) => ({ offset: 0, isTouch: false, datatime: this.getItemDatatime(item) }));
+            },
+            /**
+             * @description: 获取任务时间
+             */
+            getItemDatatime(item) {
+                if (item.datetime.start) {
+                    item.datetime.start = new Date(item.datetime.start);
+                    item.datetime.end = new Date(item.datetime.end);
+                    item.recycle.time.start = new Date(item.recycle.time.start);
+                    item.recycle.time.end = new Date(item.recycle.time.end);
+                }
+                if (item.recycle.type == 'one') {
+                    const allDays = Math.round((new Date(item.datetime.end.toLocaleDateString()) - new Date(item.datetime.start.toLocaleDateString())) / 1000 / 60 / 60 / 24);
+                    const currentDay = Math.round((new Date().setHours(0) - new Date(item.datetime.start.toLocaleDateString())) / 1000 / 60 / 60 / 24);
+                    if (item.isAllDay) {
+                        return allDays > 0 ? `全天(${currentDay + 1}/${allDays + 1})` : '全天';
+                    } else {
+                        const start = currentDay == 0 ? item.datetime.start.toLocaleTimeString().slice(0, 5) : '0:0';
+                        const end = currentDay == allDays ? item.datetime.end.toLocaleTimeString().slice(0, 5) : '0:0';
+                        return (start === end ? start : `${start}-${end}`) + (allDays > 0 ? `(${currentDay + 1}/${allDays + 1})` : '');
+                    }
+                } else {
+                    if (item.isAllDay) {
+                        return '全天';
+                    } else {
+                        const start = item.recycle.time.start.slice(11, 16);
+                        const end = item.recycle.time.end.slice(11, 16);
+                        return end === start ? start : `${start} - ${end}`;
+                    }
+                }
+            },
+            /**
+             * @description: 隐藏添加任务界面
+             */
             hiddenAddTask() {
-                this.$data.showAddTask = false;
+                this.showAddTask = false;
+                this.updateData();
+            },
+            /**
+             * @description: 开始移动taskItem
+             */
+            taskItemTouchStart(index, { touches: [{ clientX }] }) {
+                this.touchStartX = clientX + (this.taskInfos[index].offset || 0);
+                this.taskInfos[index].isTouch = true;
+            },
+            /**
+             * @description: 移动taskItem
+             */
+            taskItemTouchMove(index, { touches: [{ clientX }] }) {
+                this.touchEndX = clientX;
+                this.taskInfos[index].offset = this.touchStartX - this.touchEndX;
+            },
+            /**
+             * @description: 移动taskItem结束
+             */
+            taskItemTouchEnd(index) {
+                this.taskInfos[index].isTouch = false;
+                if (this.taskInfos[index].offset >= this.touchOffsetMax) {
+                    this.taskInfos[index].offset = this.touchOffsetMax;
+                } else {
+                    this.taskInfos[index].offset = 0;
+                }
+            },
+            /**
+             * @description: 点击任务删除事件回调
+             */
+            deleteTask({ id }, index) {
+                this.taskInfos[index].isDelete = true;
+                setTimeout(() => {
+                    task.remove(id);
+                    this.updateData();
+                }, 1000);
+            },
+            /**
+             * @description: 点击任务条事件回调：完成一次任务
+             * @param {object} task: 完成的任务
+             */
+            countTask(task) {
+                if (task.do.count >= task.count) return;
+                task.do.count++;
             },
         },
     };
@@ -64,6 +173,8 @@
     }
     .task-items {
         flex: 1;
+        padding-bottom: 200rpx;
+        margin-bottom: 20rpx;
         overflow: auto;
     }
     .task-empty {
@@ -74,9 +185,68 @@
         font-size: var(--fontSize-s);
     }
     .task-item {
-        padding: 30rpx;
-        margin-top: 30rpx;
-        height: 700rpx;
+        position: relative;
+        margin: 30rpx auto 0;
+        height: 130rpx;
+        width: 600rpx;
+        overflow-y: clip;
+        transition: 0.3s;
+    }
+    .task-item-deling {
+        height: 0rpx;
+        margin: 0rpx auto;
+    }
+    .task-item-cont {
+        position: relative;
+        padding: 20rpx 50rpx;
+        border-radius: 20rpx;
+        background: #ccc8;
+        box-shadow: inset -10rpx 10rpx 10rpx #aaa4;
+        /* border-left: 20rpx solid; */
+    }
+    .task-item-title {
+        position: relative;
+        z-index: 2;
+        flex: 1;
+        font-size: 35rpx;
+    }
+    .task-item-info {
+        position: relative;
+        z-index: 2;
+        font-size: 10rpx;
+        color: #555;
+        display: flex;
+    }
+    .task-item-info-time {
+        margin-top: 5rpx;
+        margin-right: 15rpx;
+    }
+    .task-item-info-addr {
+        margin-top: 5rpx;
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        height: 33rpx;
+        white-space: nowrap;
+    }
+    .task-item-range {
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        min-width: 40rpx;
+        border-radius: 20rpx;
+        z-index: 0;
+        box-shadow: inset -10rpx -10rpx 10rpx #aaa8;
+        box-sizing: border-box;
+        border-left: 20rpx solid inherit;
+    }
+    .task-item-delete {
+        position: absolute;
+        right: 10rpx;
+        top: 50%;
+        font-size: 30rpx;
+        transform: translateY(-50%);
     }
     .task-tab {
         transition: 0.3s;

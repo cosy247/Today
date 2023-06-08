@@ -3,7 +3,7 @@
         <view class="addTask-header">
             <view class="addTask-header-close" @click="$props.hide">&#xe658;</view>
             <view class="addTask-header-title font">添加代办</view>
-            <view class="addTask-header-add" @click="createTak">&#xe664;</view>
+            <view class="addTask-header-add" @click="createTask">&#xe664;</view>
         </view>
         <view class="addTask-content">
             <view class="addTask-content-title" :style="{ background: task.label.color }">
@@ -155,6 +155,7 @@
 
 <script>
     import taskLabelStorage from '../storage/taskLabel.js';
+    import taskStorage from '../storage/task.js';
 
     export default {
         props: ['hide'],
@@ -199,9 +200,9 @@
                     /** 任务打开次数 */
                     count: 1,
                     /** 是否为全天任务 */
-                    isAllDay: false,
+                    isAllDay: true,
                     /** 任务地点 */
-                    addr: '任务地点',
+                    addr: '',
                     /** 任务标签，默认为第一个label */
                     label: {
                         color: taskLabelStorage.getAll()[0].color,
@@ -280,7 +281,6 @@
                     },
                 } = this;
                 const allMinute = Math.round(((end - start) / 1000 / 60) % (60 * 24)) + 1;
-                console.log(allMinute);
 
                 return {
                     hours: Math.floor(allMinute / 60),
@@ -427,14 +427,41 @@
             /**
              * @description: 创建任务
              */
-            createTak() {
+            createTask() {
                 if (!this.task.title) {
                     window.$message({
                         type: 'warning',
-                        text: '请输入任务标题',
+                        message: '请输入任务标题',
                     });
                     return;
                 }
+                taskStorage.add(this.task);
+                const now = new Date();
+                this.task = {
+                    title: '',
+                    count: 1,
+                    isAllDay: true,
+                    addr: '',
+                    label: {
+                        color: taskLabelStorage.getAll()[0].color,
+                        title: taskLabelStorage.getAll()[0].title,
+                    },
+                    recycle: {
+                        type: 'one',
+                        interval: 0,
+                        weekIndexs: new Set([1, 2, 3, 4, 5]),
+                        moonIndexs: new Set([now.getDate()]),
+                        time: {
+                            start: now,
+                            end: now,
+                        },
+                    },
+                    datetime: {
+                        start: now,
+                        end: now,
+                    },
+                };
+                this.taskCountInput = '';
                 this.$props.hide();
             },
         },

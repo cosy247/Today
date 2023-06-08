@@ -6,7 +6,7 @@ export function setStorage(key, data) {
 }
 
 export function getStorage(key) {
-    if(storageObject.hasOwnProperty(key)) {
+    if (storageObject.hasOwnProperty(key)) {
         return storageObject[key];
     } else {
         const data = uni.getStorageSync(key);

@@ -1,19 +1,21 @@
-import { getStorage, removeStorage, setStorage } from "./storage";
-
-const storageDefaultValue = [];
+import { getStorage, removeStorage, setStorage } from './storage';
 
 const storageKey = 'task';
-const storageRealValue = getStorage(storageKey) || [];
-const storageValue = storageRealValue.length == 0 ? storageDefaultValue : storageRealValue;
+const storageValue = getStorage(storageKey) || [];
 
 export default {
-    add({title, color}) {
-        storageValue.push({title, color});
+    add(task) {
+        task.id = Date.now();
+        task.do = { count: 0 };
+        storageValue.push(task);
+        setStorage(storageKey, storageValue);
     },
-    remove({color}) {
-        storageValue.delete(color);
+    remove(id) {
+        const index = storageValue.findIndex((item) => item.id == id);
+        storageValue.splice(index, 1);
+        setStorage(storageKey, storageValue);
     },
     getAll() {
         return [...storageValue];
-    }
-}
+    },
+};
