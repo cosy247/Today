@@ -3,11 +3,11 @@
         <view class="addTask-header">
             <view class="addTask-header-close" @click="$props.hide">&#xe658;</view>
             <view class="addTask-header-title font">添加代办</view>
-            <view class="addTask-header-add">&#xe664;</view>
+            <view class="addTask-header-add" @click="createTak">&#xe664;</view>
         </view>
         <view class="addTask-content">
             <view class="addTask-content-title" :style="{ background: task.label.color }">
-                <input type="text" placeholder="输入标题" />
+                <input type="text" placeholder="输入标题" v-model="task.title" />
             </view>
             <view class="addTask-content-titleLine">
                 <view class="addTask-content-subTitle">任务标签：</view>
@@ -59,7 +59,7 @@
                         </view>
                     </view>
                 </view>
-                <!-- 循环循环 -->
+                <!-- 循环 -->
                 <view v-show="task.recycle.type !== 'one'">
                     <!-- 时间间隔 -->
                     <view class="addTask-content-titleLine">
@@ -137,6 +137,17 @@
                     </view>
                 </view>
             </view>
+            <view class="addTask-content-titleLine">
+                <view class="addTask-content-subTitle">任务地点</view>
+                <view class="addTask-content-dateTypes">
+                    <picker :range="commonAddresses" range-key="addr" @change="selectTaskAddr">
+                        <view class="addTask-content-selectAddr">常用地点</view>
+                    </picker>
+                </view>
+            </view>
+            <view class="addTask-content-addr">
+                <input v-model="task.addr" placeholder="无指定地点"/>
+            </view>
         </view>
     </view>
 </template>
@@ -178,12 +189,23 @@
                         text: '按月',
                     },
                 ],
+                /** 常用任务地址 */
+                commonAddresses: [
+                    { id: 1, addr: '家' },
+                    { id: 2, addr: '公司' },
+                    { id: 3, addr: '学校' },
+                    { id: 4, addr: '公园' },
+                ],
                 /** 任务信息对象 */
                 task: {
+                    /** 任务标题 */
+                    title: '',
                     /** 任务打开次数 */
                     count: 1,
                     /** 是否为全天任务 */
                     isAllDay: false,
+                    /** 任务地点 */
+                    addr: '任务地点',
                     /** 任务标签，默认为第一个label */
                     label: {
                         color: taskLabelStorage.getAll()[0].color,
@@ -388,6 +410,17 @@
                     },
                 });
             },
+            selectTaskAddr({ detail: { value } }) {
+                this.task.addr = this.commonAddresses[value].addr;
+            },
+            createTak() {
+                if(this.task.title) {
+                    window.$message({
+                        type: 'warning',
+                        text: '请输入任务标题'
+                    })
+                }
+            }
         },
     };
 </script>
@@ -628,5 +661,15 @@
     .addTask-content-datetime-tip {
         text-align: center;
         font-weight: 900;
+    }
+    .addTask-content-addr {
+        background: #fffd;
+        border-radius: 10rpx;
+        padding: 20rpx;
+        box-sizing: border-box;
+    }
+    .addTask-content-addr input {
+        text-align: center;
+        flex: 1;
     }
 </style>
