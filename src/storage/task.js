@@ -1,7 +1,10 @@
 import { getStorage, removeStorage, setStorage } from "./storage";
 
+const storageDefaultValue = [];
+
 const storageKey = 'task';
-const storageValue = [...getStorage(storageKey)];
+const storageRealValue = getStorage(storageKey) || [];
+const storageValue = storageRealValue.length == 0 ? storageDefaultValue : storageRealValue;
 
 export default {
     add({title, color}) {
