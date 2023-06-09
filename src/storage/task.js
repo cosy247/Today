@@ -92,32 +92,49 @@ export default {
         date.setHours(0);
         date.setMinutes(0);
         date.setSeconds(0);
-        const dateStartValue = date.valueOf();
+        /** 当天开始时间戳 */
+        const dayStartValue = date.valueOf();
+        /** 当天星期 */
         const weekDay = date.getDay();
         date.setHours(24);
-        const dateEndValue = date.valueOf();
+        /** 当前结束时间戳 */
+        const dayEndValue = date.valueOf();
         date.setHours(-24 * weekDay);
-        const dateWeekValue = date.valueOf();
-        
+        /** 当周开始时间戳 */
+        const weekStartValue = date.valueOf();
+
         return storageValue.filter((item) => {
-            const itemDateStartValue = new Date(item.datetime.start).valueOf();
+            const itemDateStart = new Date(item.datetime.start);
+            const itemDateStartValue = itemDateStart.valueOf();
             const itemDateEndValue = item.datetime.end ? new Date(item.datetime.end).valueOf() : Infinity;
-            if (itemDateStartValue > dateEndValue && itemDateEndValue < dateStartValue) {
+            if (itemDateStartValue > dayEndValue && itemDateEndValue < dayStartValue) {
                 return false;
             }
             if (item.recycle.type === 'one') {
                 return true;
-            } else if (item.recycle.type === 'week') {
-                if(!item.recycle.weekIndexs.includes(weekDay)) {
+            }
+            itemDateStart.setHours(0);
+            itemDateStart.setMinutes(0);
+            itemDateStart.setSeconds(0);
+            if (item.recycle.type === 'day') {
+                const dayInterval = Math.round((dayStartValue - itemDateStart.valueOf()) / 1000 / 60 / 60 / 24);
+                return dayInterval % (item.recycle.interval + 1) == 0;
+            }
+            if (item.recycle.type === 'week') {
+                if (!item.recycle.weekIndexs.includes(weekDay)) {
                     return false;
                 }
-                if(item.recycle.interval > 0) {
-                    const itemWeekDateValue = new Date().setDate(weekDay);
-                    return item.recycle.weekIndexs.includes(weekDay);
+                const itemWeekStartValue = new Date(itemDateStart).setHours(-24 & itemDateStart.getDay());
+                const weekInterval = Math.round((weekStartValue - itemWeekStartValue) / 1000 / 60 / 60 / 24 / 7);
+                return weekInterval % (item.recycle.interval + 1) == 0;
+            }
+            if (item.recycle.type === 'moon') {
+                if (!item.recycle.moonIndexs.includes(weekDay)) {
+                    return false;
                 }
-                return true;
-            } else if (item.recycle.type === 'moon') {
-                return item.recycle.weekIndexs.moonIndexs(weekDay);
+                const itemMoonStartValue = new Date(itemDateStart).setHours(-24 & itemDateStart.getDate());
+                const weekInterval = Math.round((weekStartValue - itemMoonStartValue) / 1000 / 60 / 60 / 24 / 7);
+                return weekInterval % (item.recycle.interval + 1) == 0;
             }
         });
     },
