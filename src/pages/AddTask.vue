@@ -1,7 +1,7 @@
 <template>
     <view class="addTask-root background">
         <view class="addTask-header">
-            <view class="addTask-header-close" @click="$props.hide">&#xe658;</view>
+            <view class="addTask-header-close" @click="hidePage">&#xe658;</view>
             <view class="addTask-header-title font">添加代办</view>
             <view class="addTask-header-add" @click="createTask">&#xe664;</view>
         </view>
@@ -82,23 +82,23 @@
                         </view>
                         <!-- 按周循环的任务 -->
                         <view class="addTask-content-selectWeeks" v-show="task.recycle.type == 'week'">
-                            <view class="addTask-content-selectWeek" v-for="(item, index) in '一二三四五六日'" @click="selectWeekDay(index + 1)" :style="{ background: task.recycle.weekIndexs.has(index + 1) ? task.label.color : '' }">{{ item }}</view>
+                            <view class="addTask-content-selectWeek" v-for="(item, index) in '一二三四五六日'" @click="selectWeekDay(index + 1)" :style="{ background: task.recycle.weekIndexs.includes(index + 1) ? task.label.color : '' }">{{ item }}</view>
                         </view>
                         <!-- 按月循环的任务 -->
                         <view class="addTask-content-selectMoons" v-show="task.recycle.type == 'moon'">
-                            <view class="addTask-content-selectMoon" v-for="(item, index) in 31" @click="selectMoonDay(index + 1)" :style="{ background: task.recycle.moonIndexs.has(index + 1) ? task.label.color : '' }">{{ item }}</view>
-                            <view class="addTask-content-clearMoon" @click="task.recycle.moonIndexs = new Set()">清空</view>
+                            <view class="addTask-content-selectMoon" v-for="(item, index) in 31" @click="selectMoonDay(index + 1)" :style="{ background: task.recycle.moonIndexs.includes(index + 1) ? task.label.color : '' }">{{ item }}</view>
+                            <view class="addTask-content-clearMoon" @click="task.recycle.moonIndexs = []">清空</view>
                         </view>
                     </view>
                     <!-- 任务日期 -->
                     <view class="addTask-content-titleLine">
                         <view class="addTask-content-subTitle">任务日期：</view>
                         <view class="addTask-content-dateTypes">
-                            <view class="addTask-content-dateType" :style="{ background: !task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">存在结束</view>
-                            <view class="addTask-content-dateType" :style="{ background: task.isForever ? task.label.color : '' }" @click="task.isForever = !task.isForever">永不结束</view>
+                            <view class="addTask-content-dateType" :style="{ background: !task.recycle.isForever ? task.label.color : '' }" @click="task.recycle.isForever = !task.recycle.isForever">存在结束</view>
+                            <view class="addTask-content-dateType" :style="{ background: task.recycle.isForever ? task.label.color : '' }" @click="task.recycle.isForever = !task.recycle.isForever">永不结束</view>
                         </view>
                     </view>
-                    <view class="addTask-content-datetime" v-show="!task.isForever">
+                    <view class="addTask-content-datetime" v-show="!task.recycle.isForever">
                         <view class="addTask-content-datetime-select" @click="selecteDateStart">
                             {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
@@ -107,7 +107,7 @@
                             {{ task.datetime.end.toLocaleDateString().slice(0, 10) }}
                         </view>
                     </view>
-                    <view class="addTask-content-datetime" v-show="task.isForever">
+                    <view class="addTask-content-datetime" v-show="task.recycle.isForever">
                         <view class="addTask-content-datetime-select" @click="selecteDateStart">
                             {{ task.datetime.start.toLocaleDateString().slice(0, 10) }}
                         </view>
@@ -158,92 +158,92 @@
     import taskStorage from '../storage/task.js';
     import { watch } from 'vue';
 
+    const now = new Date();
+    now.setSeconds(0);
+
     export default {
         props: ['hide', 'taskData'],
-        data() {
-            const now = new Date();
-            now.setSeconds(0);
+        data: () => ({
+            /** 全部任务标签 */
+            labels: taskLabelStorage.getAll(),
+            /** 任务次数 */
+            taskCount: [1, 2, 3, 5],
+            /** 任务自定义次数 */
+            taskCountInput: '',
+            /** 任务循环类型 */
+            taskRecycles: [
+                {
+                    type: 'one',
+                    text: '一次',
+                },
+                {
+                    type: 'day',
+                    text: '按天',
+                },
+                {
+                    type: 'week',
+                    text: '按周',
+                },
+                {
+                    type: 'moon',
+                    text: '按月',
+                },
+            ],
+            /** 常用任务地址 */
+            commonAddresses: ['家', '公司', '学校', '公园'],
+            /** 任务信息对象 */
+            task: {
+                /** 任务id，传入是表示为修改任务 */
+                id: null,
+                /** 任务标题 */
+                title: '',
+                /** 任务打开次数 */
+                count: 1,
+                /** 是否为全天任务 */
+                isAllDay: true,
+                /** 任务地点 */
+                addr: '',
+                /** 任务标签，默认为第一个label */
+                label: {
+                    color: taskLabelStorage.getAll()[0].color,
+                    title: taskLabelStorage.getAll()[0].title,
+                },
+                /** 任务循环 */
+                recycle: {
+                    /** 循环类型，one，day，week, moon */
+                    type: 'one',
+                    /** 循环间隔 */
+                    interval: 0,
+                    /** 周循环 */
+                    weekIndexs: [1, 2, 3, 4, 5],
+                    /** 月循环 */
+                    moonIndexs: [now.getDate()],
+                    /** 任务非全天的执行时间 */
+                    time: {
+                        start: now,
+                        end: now,
+                    },
+                    /** 任务是否存在结束 */
+                    isForever: false,
+                },
+                /** 任务存在的日期时间 */
+                datetime: {
+                    start: now,
+                    end: now,
+                },
+            },
+        }),
+        beforeMount() {
             watch(
                 () => this.$props.taskData,
                 () => {
-                    this.task = {...this.task, ...this.$props.taskData}
-                    console.log('---',this.task.recycle);
-                    this.task.recycle.weekIndexs = new Set(this.task.recycle.weekIndexs);
-                    this.task.recycle.moonIndexs = new Set(this.task.recycle.moonIndexs);
+                    this.task = { ...this.task, ...this.$props.taskData };
                     this.task.recycle.time.start = new Date(this.task.recycle.time.start);
                     this.task.recycle.time.end = new Date(this.task.recycle.time.end);
                     this.task.datetime.start = new Date(this.task.datetime.start);
                     this.task.datetime.end = new Date(this.task.datetime.end);
                 }
             );
-            return {
-                /** 全部任务标签 */
-                labels: taskLabelStorage.getAll(),
-                /** 任务次数 */
-                taskCount: [1, 2, 3, 5],
-                /** 任务自定义次数 */
-                taskCountInput: '',
-                /** 任务是否永不结束 */
-                isForever: false,
-                /** 任务循环类型 */
-                taskRecycles: [
-                    {
-                        type: 'one',
-                        text: '一次',
-                    },
-                    {
-                        type: 'day',
-                        text: '按天',
-                    },
-                    {
-                        type: 'week',
-                        text: '按周',
-                    },
-                    {
-                        type: 'moon',
-                        text: '按月',
-                    },
-                ],
-                /** 常用任务地址 */
-                commonAddresses: ['家', '公司', '学校', '公园'],
-                /** 任务信息对象 */
-                task: {
-                    /** 任务标题 */
-                    title: '',
-                    /** 任务打开次数 */
-                    count: 1,
-                    /** 是否为全天任务 */
-                    isAllDay: true,
-                    /** 任务地点 */
-                    addr: '',
-                    /** 任务标签，默认为第一个label */
-                    label: {
-                        color: taskLabelStorage.getAll()[0].color,
-                        title: taskLabelStorage.getAll()[0].title,
-                    },
-                    /** 任务循环 */
-                    recycle: {
-                        /** 循环类型，one，day，week, moon */
-                        type: 'one',
-                        /** 循环间隔 */
-                        interval: 0,
-                        /** 周循环 */
-                        weekIndexs: new Set([1, 2, 3, 4, 5]),
-                        /** 月循环 */
-                        moonIndexs: new Set([now.getDate()]),
-                        /** 任务非全天的执行时间 */
-                        time: {
-                            start: now,
-                            end: now,
-                        },
-                    },
-                    /** 任务存在的日期时间 */
-                    datetime: {
-                        start: now,
-                        end: now,
-                    },
-                },
-            };
         },
         computed: {
             /** 任务循环时间间隔提醒语句 */
@@ -301,11 +301,6 @@
                 };
             },
         },
-        watch: {
-            $props() {
-                console.log(123);
-            },
-        },
         methods: {
             /**
              * @description: 事件回调：改变任务的打卡次数
@@ -317,30 +312,20 @@
              * @description: 事件回调：选择周循环的莫一天，选择或取消
              */
             selectWeekDay(weekIndex) {
-                const {
-                    task: {
-                        recycle: { weekIndexs },
-                    },
-                } = this;
-                if (weekIndexs.has(weekIndex)) {
-                    weekIndexs.delete(weekIndex);
+                if (this.task.recycle.weekIndexs.includes(weekIndex)) {
+                    this.task.recycle.weekIndexs = this.task.recycle.weekIndexs.filter(item => item != weekIndex)
                 } else {
-                    weekIndexs.add(weekIndex);
+                    this.task.recycle.weekIndexs.push(weekIndex);
                 }
             },
             /**
              * @description: 事件回调：选择月循环的莫一天，选择或取消
              */
             selectMoonDay(moonIndex) {
-                const {
-                    task: {
-                        recycle: { moonIndexs },
-                    },
-                } = this;
-                if (moonIndexs.has(moonIndex)) {
-                    moonIndexs.delete(moonIndex);
+                if (this.task.recycle.moonIndexs.includes(moonIndex)) {
+                    this.task.recycle.moonIndexs = this.task.recycle.moonIndexs.filter(item => item != moonIndex)
                 } else {
-                    moonIndexs.add(moonIndex);
+                    this.task.recycle.moonIndexs.push(moonIndex);
                 }
             },
             /**
@@ -380,7 +365,6 @@
                 window.$datetiemPicker({
                     color: this.task.label.color,
                     datetime: this.task.datetime.start,
-                    minDatetime: this.task.datetime.start,
                     selectTime: this.task.recycle.type == 'one' && !this.task.isAllDay,
                     submit: (date) => {
                         this.task.datetime.start = date;
@@ -453,9 +437,26 @@
                     });
                     return;
                 }
-                taskStorage.add(this.task);
-                const now = new Date();
+                if (this.task.id) {
+                    taskStorage.edit(this.task.id, this.task);
+                } else {
+                    taskStorage.add(this.task);
+                }
+                this.hidePage();
+            },
+            /**
+             * @description: 隐藏界面
+             */
+            hidePage() {
+                this.resetTaskData();
+                this.hide();
+            },
+            /**
+             * @description: 重置task数据
+             */
+            resetTaskData() {
                 this.task = {
+                    id: null,
                     title: '',
                     count: 1,
                     isAllDay: true,
@@ -467,8 +468,8 @@
                     recycle: {
                         type: 'one',
                         interval: 0,
-                        weekIndexs: new Set([1, 2, 3, 4, 5]),
-                        moonIndexs: new Set([now.getDate()]),
+                        weekIndexs: [1, 2, 3, 4, 5],
+                        moonIndexs: [now.getDate()],
                         time: {
                             start: now,
                             end: now,
@@ -480,7 +481,6 @@
                     },
                 };
                 this.taskCountInput = '';
-                this.$props.hide();
             },
         },
     };
