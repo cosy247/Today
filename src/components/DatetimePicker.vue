@@ -313,7 +313,7 @@
     }
     .datetimePicker-date {
         position: absolute;
-        bottom: -100%;
+        bottom: 0%;
         left: 0;
         width: 100%;
         box-sizing: border-box;
@@ -321,9 +321,10 @@
         border-radius: 30rpx 30rpx 0 0;
         font-size: var(--fontSize-s);
         transition: 0.3s;
+        transform: translateY(100%);
     }
     .datetimePicker-show.datetimePicker-date {
-        bottom: 0%;
+        transform: translateY(0%);
     }
     .datetimePicker-header {
         position: relative;
@@ -497,15 +498,4 @@
         margin: 0 70rpx;
         background: #888;
     }
-    /* .datetimePicker-t-button {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        display: flex;
-        align-items: center;
-        justify-content: space-evenly;
-        width: 100%;
-        height: 90rpx;
-        border-top: 1px solid #888;
-    } */
 </style>
