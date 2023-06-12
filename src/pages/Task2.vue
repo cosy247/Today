@@ -1,46 +1,68 @@
 <template>
-    <view class="task-root" :style="{ left: showAddTask ? '-50%' : '0%' }">
-        <view class="task-header">
+    <view class="home-root" :style="{ left: showAddTask ? '-50%' : '0%' }">
+        <view class="home-header">
             <view>{{ year }}年{{ month }}月</view>
             <view @click="showAddTask = true">&#xe624;</view>
         </view>
-        <view class="task-calendar">
-            <view class="task-calendar-weeks">
-                <view class="task-calendar-week" v-for="item in '一二三四五六日'">{{ item }}</view>
+        <view class="home-calendar">
+            <view class="home-calendar-weeks">
+                <view class="home-calendar-week" v-for="item in '一二三四五六日'">{{ item }}</view>
             </view>
-            <view class="task-calendar-days" :style="{height: `${Math.ceil(days.length / 7) * 80}rpx`}">
-                <view :class="{'task-calendar-day':true,'task-calendar-current':item.day === this.day}" v-for="item in days">{{ item.month === this.month ? item.day : '' }}</view>
-            </view>
-        </view>
-        <view class="task-items">
-
-        </view>
-        <!-- <view class="task-items">
-            <view class="task-empty" v-if="tasks.length == 0">
-                <view class="task-empty-text font">点击右上角加号添加任务</view>
-            </view>
-            <view v-for="item in tasks" :key="item.id" :class="{ 'task-item': 1, 'task-item-hide': taskInfos[item.id].hide }">
-                <view class="task-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
-                    <view class="task-item-title">{{ item.title }}</view>
-                    <view class="task-item-info">
-                        <view class="task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                        <view class="task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
-                    </view>
-                    <view class="task-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
+            <view class="home-calendar-days" :style="{ height: `${Math.ceil(days.length / 7) * 130}rpx` }">
+                <view :class="{ 'home-calendar-day': true, 'home-calendar-hidden': item.month !== this.month }" v-for="item in days">
+                    <view :class="{ 'home-calendar-num': true, 'home-calendar-current': item.day === this.day }">{{ item.day }}</view>
+                    <view class="home-calendar-tag">{{ item.tag }}</view>
                 </view>
-                <view class="task-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
-                    <view class="task-item-option" @click="editTask(item)">&#xe622;</view>
-                    <view class="task-item-option" @click="resetTask(item)">&#xe648;</view>
-                    <view class="task-item-option" @click="toTopTask(item)">&#xe62b;</view>
-                    <view class="task-item-option" @click="deleteTask(item)">&#xe658;</view>
+            </view>
+        </view>
+        <view class="home-tasks">
+            <view class="home-tasks-header">
+                <view class="home-tasks-header-date">{{ month }}月{{ day }}日</view>
+                <view class="home-tasks-header-interval">{{ intervalDay }}</view>
+            </view>
+            <view v-for="item in tasks" :key="item.id" class="home-tasks-item">
+                <view class="home-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
+                    <view class="home-item-title">{{ item.title }}</view>
+                    <view class="home-item-info">
+                        <view class="home-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
+                        <view class="home-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
+                    </view>
+                    <view class="home-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
+                </view>
+                <view class="home-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
+                    <view class="home-item-option" @click="editTask(item)">&#xe622;</view>
+                    <view class="home-item-option" @click="resetTask(item)">&#xe648;</view>
+                    <view class="home-item-option" @click="toTopTask(item)">&#xe62b;</view>
+                    <view class="home-item-option" @click="deleteTask(item)">&#xe658;</view>
+                </view>
+            </view>
+        </view>
+        <!-- <view class="home-items">
+            <view class="home-empty" v-if="tasks.length == 0">
+                <view class="home-empty-text font">点击右上角加号添加任务</view>
+            </view>
+            <view v-for="item in tasks" :key="item.id" :class="{ 'home-item': 1, 'home-item-hide': taskInfos[item.id].hide }">
+                <view class="home-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
+                    <view class="home-item-title">{{ item.title }}</view>
+                    <view class="home-item-info">
+                        <view class="home-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
+                        <view class="home-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
+                    </view>
+                    <view class="home-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
+                </view>
+                <view class="home-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
+                    <view class="home-item-option" @click="editTask(item)">&#xe622;</view>
+                    <view class="home-item-option" @click="resetTask(item)">&#xe648;</view>
+                    <view class="home-item-option" @click="toTopTask(item)">&#xe62b;</view>
+                    <view class="home-item-option" @click="deleteTask(item)">&#xe658;</view>
                 </view>
             </view>
         </view> -->
     </view>
 
     <!-- 实例 -->
-    <Tab class="task-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
-    <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" :taskData="addTaskData" />
+    <Tab class="home-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
+    <AddTask class="home-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" :taskData="addTaskData" />
 
     <!-- 单例 -->
     <DatetimePickerVue />
@@ -53,6 +75,7 @@
     import AddTask from './AddTask';
     import DatetimePickerVue from '../components/DatetimePicker.vue';
     import MessageBox from '../components/MessageBox.vue';
+    import calendarFormatter from '../js/lunarCalendar';
 
     export default {
         components: { Tab, AddTask, DatetimePickerVue, MessageBox },
@@ -81,7 +104,7 @@
         beforeMount() {
             const now = new Date();
             this.year = now.getFullYear();
-            this.month = now.getMonth() + 2;
+            this.month = now.getMonth() + 1;
             this.day = now.getDate();
             this.updateData(false);
         },
@@ -91,13 +114,25 @@
                 const startDay = new Date(`${this.year}/${this.month}/1`);
                 startDay.setHours(-24 * startDay.getDay() + 24);
                 while (startDay.getMonth() < this.month) {
-                    days.push({ 
+                    const tag = calendarFormatter.solar2lunar(this.year, this.month, startDay.getDate());
+                    days.push({
                         month: startDay.getMonth() + 1,
-                        day: startDay.getDate() });
+                        day: startDay.getDate(),
+                        tag: tag.IDayCn === '初一' ? tag.IMonthCn : tag.IDayCn,
+                    });
                     startDay.setHours(24);
                 }
-                console.log(days);
                 return days;
+            },
+            intervalDay() {
+                const intervalDay = Math.round((new Date(`${this.year}/${this.month}/${this.day}`) - new Date()) / 1000 / 60 / 60 / 24);
+                if (intervalDay == 0) {
+                    return '今天';
+                } else if (intervalDay > 0) {
+                    return `${intervalDay}天前`;
+                } else if (intervalDay < 0) {
+                    return `${-intervalDay}天后`;
+                }
             },
         },
         methods: {
@@ -231,7 +266,7 @@
 </script>
 
 <style>
-    .task-root {
+    .home-root {
         position: absolute;
         width: 100%;
         height: 100vh;
@@ -240,75 +275,109 @@
         flex-direction: column;
         transition: 0.3s;
     }
-    .task-header {
+    .home-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         margin: 30rpx 50rpx 0;
-        font-size: var(--fontSize-s);
+        font-size: 40rpx;
         font-weight: 900;
     }
-    .task-calendar {
-        font-size: var(--fontSize-s);
-        margin: 30rpx 30rpx 0;
+    .home-calendar {
+        font-size: 35rpx;
+        margin: 50rpx 30rpx 0;
     }
-    .task-calendar-weeks {
+    .home-calendar-weeks {
         margin-top: 20rpx;
         display: flex;
     }
-    .task-calendar-week {
+    .home-calendar-week {
         text-align: center;
         width: 100%;
     }
-    .task-calendar-days {
+    .home-calendar-days {
         margin-top: 30rpx;
         display: grid;
-        grid: repeat(6, 95rpx) / repeat(7, 1fr);
+        grid: auto-flow 130rpx / repeat(7, 1fr);
         transition: height 0.3s;
+        overflow: hidden;
     }
-    .task-calendar-day {
+    .home-calendar-day {
         text-align: center;
         font-weight: 600;
-        border-radius: 50%;
-        line-height: 80rpx;
     }
-    .task-calendar-current {
+    .home-calendar-hidden {
+        visibility: hidden;
+        pointer-events: none;
+    }
+    .home-calendar-num {
+        border-radius: 50%;
+        width: 2em;
+        height: 2em;
+        line-height: 2em;
+        margin: auto;
+    }
+    .home-calendar-current {
         background: rgb(169, 174, 241);
+        color: #fff;
+    }
+    .home-calendar-tag {
+        color: #888;
+        margin-top: 5rpx;
+        font-size: 20rpx;
     }
 
-    .task-items {
+    /* home-tasks */
+    .home-tasks {
+        margin: 50rpx 60rpx 0;
+    }
+    .home-tasks-header {
+        display: flex;
+        align-items: baseline;
+    }
+    .home-tasks-header-date {
+        font-size: 40rpx;
+    }
+    .home-tasks-header-interval {
+        font-size: 30rpx;
+        margin-left: 15rpx;
+    }
+    .home-tasks-item {
+    }
+
+    .home-items {
         flex: 1;
         padding-bottom: 200rpx;
         margin-bottom: 20rpx;
         overflow: auto;
     }
-    .task-empty {
+    .home-empty {
         display: flex;
         height: 100%;
         align-items: center;
         justify-content: center;
         font-size: var(--fontSize-s);
     }
-    .task-item {
+    .home-item {
         position: relative;
         margin: 30rpx auto 0;
         height: 130rpx;
         width: 600rpx;
         overflow-y: clip;
         transition: 0.3s;
-        animation: task-item-toping 0.3s;
+        animation: home-item-toping 0.3s;
     }
-    @keyframes task-item-toping {
+    @keyframes home-item-toping {
         0% {
             height: 0rpx;
             margin: 0rpx auto;
         }
     }
-    .task-item-hide {
+    .home-item-hide {
         height: 0rpx;
         margin: 0rpx auto;
     }
-    .task-item-cont {
+    .home-item-cont {
         position: relative;
         padding: 20rpx 50rpx;
         border-radius: 20rpx;
@@ -316,24 +385,24 @@
         box-shadow: inset -10rpx 10rpx 10rpx #aaa4;
         /* border-left: 20rpx solid; */
     }
-    .task-item-title {
+    .home-item-title {
         position: relative;
         z-index: 2;
         flex: 1;
         font-size: 35rpx;
     }
-    .task-item-info {
+    .home-item-info {
         position: relative;
         z-index: 2;
         font-size: 10rpx;
         color: #555;
         display: flex;
     }
-    .task-item-info-time {
+    .home-item-info-time {
         margin-top: 5rpx;
         margin-right: 15rpx;
     }
-    .task-item-info-addr {
+    .home-item-info-addr {
         margin-top: 5rpx;
         flex: 1;
         overflow: hidden;
@@ -341,7 +410,7 @@
         height: 33rpx;
         white-space: nowrap;
     }
-    .task-item-range {
+    .home-item-range {
         position: absolute;
         left: 0;
         top: 0;
@@ -353,7 +422,7 @@
         box-sizing: border-box;
         border-left: 20rpx solid inherit;
     }
-    .task-item-options {
+    .home-item-options {
         position: absolute;
         right: 10rpx;
         top: 50%;
@@ -361,13 +430,13 @@
         transform: translateY(-50%);
         display: flex;
     }
-    .task-item-option {
+    .home-item-option {
         margin-left: 10px;
     }
-    .task-tab {
+    .home-tab {
         transition: 0.3s;
     }
-    .task-add {
+    .home-add {
         position: fixed;
         width: 100%;
         height: 100%;
