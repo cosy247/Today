@@ -13,18 +13,15 @@
 </script>
 
 <style>
-    /*********************** font ***********************/
-   /* CDN 服务仅供平台体验和调试使用，平台不承诺服务的稳定性，企业客户需下载字体包自行发布使用并做好备份。 */
-@font-face {
-  font-family: 'iconfont';  /* Project id 4045984 */
-  src: url('//at.alicdn.com/t/c/font_4045984_x6wmqsz5j.woff2?t=1683547626416') format('woff2'),
-       url('//at.alicdn.com/t/c/font_4045984_x6wmqsz5j.woff?t=1683547626416') format('woff'),
-       url('//at.alicdn.com/t/c/font_4045984_x6wmqsz5j.ttf?t=1683547626416') format('truetype');
-}
+    /* 在线链接服务仅供平台体验和调试使用，平台不承诺服务的稳定性，企业客户需下载字体包自行发布使用并做好备份。 */
     @font-face {
-        font-family: 'app-font'; /* Project id 4045984 */
-        src: url('../static/font/font.ttf') format('truetype');
+        font-family: 'iconfont'; /* Project id 4045984 */
+        src: url('//at.alicdn.com/t/c/font_4045984_ntmualuv72.woff2?t=1686274231478') format('woff2'), url('//at.alicdn.com/t/c/font_4045984_ntmualuv72.woff?t=1686274231478') format('woff'), url('//at.alicdn.com/t/c/font_4045984_ntmualuv72.ttf?t=1686274231478') format('truetype');
     }
+    /* @font-face {
+        font-family: 'app-font';
+        src: url('../static/font/font.ttf') format('truetype');
+    } */
 
     * {
         padding: 0;
@@ -41,15 +38,14 @@
     }
 
     :root {
-        --fontSize-ss: 28rpx;
-        --fontSize-s: 35rpx;
+        --fontSize-s: 25rpx;
         --fontSize-m: 50rpx;
         --fontSize-l: 65rpx;
     }
 
-    /*********************** background ***********************/
     .background {
-        background: -webkit-linear-gradient(top, transparent 40rpx, rgb(218, 218, 106) 41rpx), -webkit-linear-gradient(left, rgb(241, 245, 246) 40rpx, rgb(218, 218, 106) 41rpx);
+        /* background: -webkit-linear-gradient(top, transparent 40rpx, rgb(218, 218, 106) 41rpx), -webkit-linear-gradient(left, rgb(241, 245, 246) 40rpx, rgb(218, 218, 106) 41rpx); */
+        background: #f5f5f5;
         background-size: 42rpx 42rpx;
     }
 </style>

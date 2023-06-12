@@ -1,11 +1,21 @@
 <template>
-    <view class="task-root background" :style="{ left: showAddTask ? '-50%' : '0%' }">
+    <view class="task-root" :style="{ left: showAddTask ? '-50%' : '0%' }">
         <view class="task-header">
-            <view class="task-header-time font">今天</view>
-            <view class="task-header-precent">10/20</view>
-            <view class="task-header-add" @click="showAddTask = true">&#xe624;</view>
+            <view>{{ year }}年{{ month }}月</view>
+            <view @click="showAddTask = true">&#xe624;</view>
+        </view>
+        <view class="task-calendar">
+            <view class="task-calendar-weeks">
+                <view class="task-calendar-week" v-for="item in '一二三四五六日'">{{ item }}</view>
+            </view>
+            <view class="task-calendar-days" :style="{height: `${Math.ceil(days.length / 7) * 80}rpx`}">
+                <view :class="{'task-calendar-day':true,'task-calendar-current':item.day === this.day}" v-for="item in days">{{ item.month === this.month ? item.day : '' }}</view>
+            </view>
         </view>
         <view class="task-items">
+
+        </view>
+        <!-- <view class="task-items">
             <view class="task-empty" v-if="tasks.length == 0">
                 <view class="task-empty-text font">点击右上角加号添加任务</view>
             </view>
@@ -25,7 +35,7 @@
                     <view class="task-item-option" @click="deleteTask(item)">&#xe658;</view>
                 </view>
             </view>
-        </view>
+        </view> -->
     </view>
 
     <!-- 实例 -->
@@ -47,6 +57,12 @@
     export default {
         components: { Tab, AddTask, DatetimePickerVue, MessageBox },
         data: () => ({
+            /** 当前年 */
+            year: 0,
+            /** 当前月 */
+            month: 0,
+            /** 当前日 */
+            day: 0,
             /** 任务列表 */
             tasks: [],
             /** 任务单页面信息[{offset, isTouch, hide, datatime}] */
@@ -63,7 +79,26 @@
             addTaskData: {},
         }),
         beforeMount() {
+            const now = new Date();
+            this.year = now.getFullYear();
+            this.month = now.getMonth() + 2;
+            this.day = now.getDate();
             this.updateData(false);
+        },
+        computed: {
+            days() {
+                const days = [];
+                const startDay = new Date(`${this.year}/${this.month}/1`);
+                startDay.setHours(-24 * startDay.getDay() + 24);
+                while (startDay.getMonth() < this.month) {
+                    days.push({ 
+                        month: startDay.getMonth() + 1,
+                        day: startDay.getDate() });
+                    startDay.setHours(24);
+                }
+                console.log(days);
+                return days;
+            },
         },
         methods: {
             /**
@@ -209,13 +244,38 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 30rpx 50rpx;
-        font-size: var(--fontSize-m);
+        margin: 30rpx 50rpx 0;
+        font-size: var(--fontSize-s);
+        font-weight: 900;
     }
-    .task-header-time {
+    .task-calendar {
+        font-size: var(--fontSize-s);
+        margin: 30rpx 30rpx 0;
     }
-    .task-header-add {
+    .task-calendar-weeks {
+        margin-top: 20rpx;
+        display: flex;
     }
+    .task-calendar-week {
+        text-align: center;
+        width: 100%;
+    }
+    .task-calendar-days {
+        margin-top: 30rpx;
+        display: grid;
+        grid: repeat(6, 95rpx) / repeat(7, 1fr);
+        transition: height 0.3s;
+    }
+    .task-calendar-day {
+        text-align: center;
+        font-weight: 600;
+        border-radius: 50%;
+        line-height: 80rpx;
+    }
+    .task-calendar-current {
+        background: rgb(169, 174, 241);
+    }
+
     .task-items {
         flex: 1;
         padding-bottom: 200rpx;
