@@ -193,7 +193,7 @@ export default {
         }
         this.update();
     },
-    
+
     /**
      * @description: 修改任务
      */
@@ -253,7 +253,6 @@ export default {
      * @description: 同步数据到库
      */
     update() {
-        console.log(storageValue);
         setStorage(storageKey, storageValue);
     },
 };

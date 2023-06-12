@@ -18,10 +18,10 @@
         font-family: 'iconfont'; /* Project id 4045984 */
         src: url('//at.alicdn.com/t/c/font_4045984_ntmualuv72.woff2?t=1686274231478') format('woff2'), url('//at.alicdn.com/t/c/font_4045984_ntmualuv72.woff?t=1686274231478') format('woff'), url('//at.alicdn.com/t/c/font_4045984_ntmualuv72.ttf?t=1686274231478') format('truetype');
     }
-    @font-face {
-        font-family: 'app-font'; /* Project id 4045984 */
+    /* @font-face {
+        font-family: 'app-font';
         src: url('../static/font/font.ttf') format('truetype');
-    }
+    } */
 
     * {
         padding: 0;
@@ -38,14 +38,14 @@
     }
 
     :root {
-        --fontSize-ss: 28rpx;
-        --fontSize-s: 35rpx;
+        --fontSize-s: 25rpx;
         --fontSize-m: 50rpx;
         --fontSize-l: 65rpx;
     }
 
     .background {
-        background: -webkit-linear-gradient(top, transparent 40rpx, rgb(218, 218, 106) 41rpx), -webkit-linear-gradient(left, rgb(241, 245, 246) 40rpx, rgb(218, 218, 106) 41rpx);
+        /* background: -webkit-linear-gradient(top, transparent 40rpx, rgb(218, 218, 106) 41rpx), -webkit-linear-gradient(left, rgb(241, 245, 246) 40rpx, rgb(218, 218, 106) 41rpx); */
+        background: #f5f5f5;
         background-size: 42rpx 42rpx;
     }
 </style>
