@@ -16,7 +16,7 @@
                         <view class="task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
                         <view class="task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
                     </view>
-                    <view class="task-item-range" :style="`background: ${item.label.color}; width: ${(item.do.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
+                    <view class="task-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
                 </view>
                 <view class="task-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
                     <view class="task-item-option" @click="editTask(item)">&#xe622;</view>
@@ -27,25 +27,13 @@
             </view>
         </view>
     </view>
-
-    <!-- 实例 -->
-    <Tab class="task-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
-    <AddTask class="task-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" :taskData="addTaskData" />
-
-    <!-- 单例 -->
-    <DatetimePickerVue />
-    <MessageBox />
 </template>
 
 <script>
-    import task from '../storage/task.js';
-    import Tab from '../components/Tab';
-    import AddTask from './AddTask';
-    import DatetimePickerVue from '../components/DatetimePicker.vue';
-    import MessageBox from '../components/MessageBox.vue';
+    import taskStorage from '../storage/task.js';
 
     export default {
-        components: { Tab, AddTask, DatetimePickerVue, MessageBox },
+        // components: { Tab, AddTask, DatetimePickerVue, MessageBox },
         data: () => ({
             /** 任务列表 */
             tasks: [],
@@ -63,14 +51,16 @@
             addTaskData: {},
         }),
         beforeMount() {
-            this.updateData();
+            this.updateData(false);
         },
         methods: {
             /**
              * @description: 任务更新数据
+             * @param {bool} update: 是否需要更新源数据
              */
-            updateData() {
-                this.tasks = task.getDay().sort((t1, t2) => (t2.do.top == t1.do.top ? t2.id - t1.id : t2.do.top - t1.do.top));
+            updateData(update = true) {
+                update && taskStorage.update();
+                this.tasks = taskStorage.getDay().sort((t1, t2) => (t2.done.top == t1.done.top ? t2.id - t1.id : t2.done.top - t1.done.top));
                 this.taskInfos = this.tasks.reduce((infos, item) => {
                     if (!infos[item.id]) {
                         infos[item.id] = { offset: 0, isTouch: false, hide: false, datatime: this.getItemDatatime(item) };
@@ -153,8 +143,9 @@
              * @description: 点击任务重置事件回调
              */
             resetTask(task) {
-                task.do.count = 0;
+                task.done.count = 0;
                 this.taskInfos[task.id].offset = 0;
+                this.updateData();
             },
             /**
              * @description: 置顶任务
@@ -163,7 +154,7 @@
                 this.taskInfos[task.id].hide = true;
                 this.taskInfos[task.id].offset = 0;
                 setTimeout(() => {
-                    task.do.top = +new Date().valueOf();
+                    task.done.top = +new Date().valueOf();
                     this.taskInfos[task.id].hide = false;
                     this.updateData();
                 }, 310);
@@ -175,7 +166,7 @@
                 this.taskInfos[id].hide = true;
                 this.taskInfos[id].offset = 0;
                 setTimeout(() => {
-                    task.remove(id);
+                    taskStorage.remove(id);
                     this.updateData();
                 }, 310);
             },
@@ -184,8 +175,9 @@
              * @param {object} task: 完成的任务
              */
             countTask(task) {
-                if (task.do.count >= task.count) return;
-                task.do.count++;
+                if (task.done.count >= task.count) return;
+                task.done.count++;
+                this.updateData();
             },
         },
     };
@@ -193,9 +185,9 @@
 
 <style>
     .task-root {
-        position: absolute;
+        position: relative;
         width: 100%;
-        height: 100vh;
+        height: 100%;
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -299,15 +291,5 @@
     }
     .task-item-option {
         margin-left: 10px;
-    }
-    .task-tab {
-        transition: 0.3s;
-    }
-    .task-add {
-        position: fixed;
-        width: 100%;
-        height: 100%;
-        top: 0;
-        transition: 0.3s;
     }
 </style>
