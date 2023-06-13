@@ -43,9 +43,7 @@
         --fontSize-l: 65rpx;
     }
 
-    .background {
-        /* background: -webkit-linear-gradient(top, transparent 40rpx, rgb(218, 218, 106) 41rpx), -webkit-linear-gradient(left, rgb(241, 245, 246) 40rpx, rgb(218, 218, 106) 41rpx); */
-        background: #f5f5f5;
-        background-size: 42rpx 42rpx;
+    body {
+        background: #f6f7f8;
     }
 </style>

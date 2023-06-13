@@ -15,25 +15,29 @@
                 </view>
             </view>
         </view>
-        <view class="home-tasks">
-            <view class="home-tasks-header">
-                <view class="home-tasks-header-date">{{ month }}月{{ day }}日</view>
-                <view class="home-tasks-header-interval">{{ intervalDay }}</view>
+        <view class="home-task">
+            <view class="home-task-header">
+                <view class="home-task-header-date">{{ month }}月{{ day }}日</view>
+                <view class="home-task-header-interval">{{ intervalDay }}</view>
             </view>
-            <view v-for="item in tasks" :key="item.id" class="home-tasks-item">
-                <view class="home-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
-                    <view class="home-item-title">{{ item.title }}</view>
-                    <view class="home-item-info">
-                        <view class="home-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                        <view class="home-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
+            <view class="home-task-items">
+                <view v-for="item in tasks" :key="item.id" class="home-task-item">
+                    <view class="home-task-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
+                        <view class="home-task-item-title-status"></view>
+                        <view>
+                            <view class="home-task-item-title">{{ item.title }}</view>
+                            <view class="home-task-item-info">
+                                <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
+                                <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
+                            </view>
+                        </view>
                     </view>
-                    <view class="home-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
-                </view>
-                <view class="home-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
-                    <view class="home-item-option" @click="editTask(item)">&#xe622;</view>
-                    <view class="home-item-option" @click="resetTask(item)">&#xe648;</view>
-                    <view class="home-item-option" @click="toTopTask(item)">&#xe62b;</view>
-                    <view class="home-item-option" @click="deleteTask(item)">&#xe658;</view>
+                    <view class="home-task-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
+                        <view class="home-task-item-option" @click="editTask(item)">&#xe622;</view>
+                        <view class="home-task-item-option" @click="resetTask(item)">&#xe648;</view>
+                        <!-- <view class="home-task-item-option" @click="toTopTask(item)">&#xe62b;</view> -->
+                        <view class="home-task-item-option" @click="deleteTask(item)">&#xe658;</view>
+                    </view>
                 </view>
             </view>
         </view>
@@ -41,28 +45,28 @@
             <view class="home-empty" v-if="tasks.length == 0">
                 <view class="home-empty-text font">点击右上角加号添加任务</view>
             </view>
-            <view v-for="item in tasks" :key="item.id" :class="{ 'home-item': 1, 'home-item-hide': taskInfos[item.id].hide }">
-                <view class="home-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
-                    <view class="home-item-title">{{ item.title }}</view>
-                    <view class="home-item-info">
-                        <view class="home-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                        <view class="home-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
+            <view v-for="item in tasks" :key="item.id" :class="{ 'home-item': 1, 'home-task-item-hide': taskInfos[item.id].hide }">
+                <view class="home-task-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
+                    <view class="home-task-item-title">{{ item.title }}</view>
+                    <view class="home-task-item-info">
+                        <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
+                        <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
                     </view>
-                    <view class="home-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
+                    <view class="home-task-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
                 </view>
-                <view class="home-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
-                    <view class="home-item-option" @click="editTask(item)">&#xe622;</view>
-                    <view class="home-item-option" @click="resetTask(item)">&#xe648;</view>
-                    <view class="home-item-option" @click="toTopTask(item)">&#xe62b;</view>
-                    <view class="home-item-option" @click="deleteTask(item)">&#xe658;</view>
+                <view class="home-task-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
+                    <view class="home-task-item-option" @click="editTask(item)">&#xe622;</view>
+                    <view class="home-task-item-option" @click="resetTask(item)">&#xe648;</view>
+                    <view class="home-task-item-option" @click="toTopTask(item)">&#xe62b;</view>
+                    <view class="home-task-item-option" @click="deleteTask(item)">&#xe658;</view>
                 </view>
             </view>
         </view> -->
     </view>
 
     <!-- 实例 -->
-    <Tab class="home-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" />
-    <AddTask class="home-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" :taskData="addTaskData" />
+    <!-- <Tab class="home-tab" :style="{ bottom: showAddTask ? '-100%' : '' }" /> -->
+    <!-- <AddTask class="home-add" :style="{ left: showAddTask ? 0 : '110%' }" :hide="hiddenAddTask" :taskData="addTaskData" /> -->
 
     <!-- 单例 -->
     <DatetimePickerVue />
@@ -97,7 +101,7 @@
             /** 任务条触摸开始的时间 */
             touchStartTime: 0,
             /** 任务条滑动最大值 */
-            touchOffsetMax: uni.upx2px(250),
+            touchOffsetMax: uni.upx2px(150),
             /** 任务添加的默认数据，用户任务修改 */
             addTaskData: {},
         }),
@@ -212,6 +216,11 @@
                 } else {
                     this.taskInfos[id].offset = 0;
                 }
+                window.addEventListener('touchstart', () => {
+                    setTimeout(() => {
+                        this.taskInfos[id].offset = 0;
+                    }, 300);
+                });
             },
             /**
              * @description: 点击任务编辑事件回调
@@ -279,13 +288,15 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        margin: 30rpx 50rpx 0;
+        margin: 30rpx 40rpx 0;
         font-size: 40rpx;
         font-weight: 900;
     }
+
+    /* home-calendar */
     .home-calendar {
         font-size: 35rpx;
-        margin: 50rpx 30rpx 0;
+        margin: 20rpx 10rpx 0;
     }
     .home-calendar-weeks {
         margin-top: 20rpx;
@@ -327,120 +338,61 @@
         font-size: 20rpx;
     }
 
-    /* home-tasks */
-    .home-tasks {
-        margin: 50rpx 60rpx 0;
+    /* home-task */
+    .home-task {
+        margin: 50rpx 30rpx 0;
     }
-    .home-tasks-header {
+    .home-task-header {
         display: flex;
         align-items: baseline;
     }
-    .home-tasks-header-date {
+    .home-task-header-date {
         font-size: 40rpx;
     }
-    .home-tasks-header-interval {
+    .home-task-header-interval {
         font-size: 30rpx;
         margin-left: 15rpx;
     }
-    .home-tasks-item {
+    .home-task-items {
+        margin-top: 30rpx;
     }
-
-    .home-items {
-        flex: 1;
-        padding-bottom: 200rpx;
-        margin-bottom: 20rpx;
-        overflow: auto;
+    .home-task-item {
+        position: relative;
     }
-    .home-empty {
+    .home-task-cont {
+        position: relative;
+        position: relative;
+        background: #fff;
+        padding: 20rpx 30rpx;
+        border-radius: 30rpx;
         display: flex;
-        height: 100%;
         align-items: center;
-        justify-content: center;
-        font-size: var(--fontSize-s);
-    }
-    .home-item {
-        position: relative;
-        margin: 30rpx auto 0;
-        height: 130rpx;
-        width: 600rpx;
-        overflow-y: clip;
-        transition: 0.3s;
-        animation: home-item-toping 0.3s;
-    }
-    @keyframes home-item-toping {
-        0% {
-            height: 0rpx;
-            margin: 0rpx auto;
-        }
-    }
-    .home-item-hide {
-        height: 0rpx;
-        margin: 0rpx auto;
-    }
-    .home-item-cont {
-        position: relative;
-        padding: 20rpx 50rpx;
-        border-radius: 20rpx;
-        background: #ccc8;
-        box-shadow: inset -10rpx 10rpx 10rpx #aaa4;
-        /* border-left: 20rpx solid; */
-    }
-    .home-item-title {
-        position: relative;
-        z-index: 2;
-        flex: 1;
-        font-size: 35rpx;
-    }
-    .home-item-info {
-        position: relative;
-        z-index: 2;
-        font-size: 10rpx;
-        color: #555;
-        display: flex;
-    }
-    .home-item-info-time {
-        margin-top: 5rpx;
-        margin-right: 15rpx;
-    }
-    .home-item-info-addr {
-        margin-top: 5rpx;
-        flex: 1;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        height: 33rpx;
-        white-space: nowrap;
-    }
-    .home-item-range {
-        position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
-        min-width: 40rpx;
-        border-radius: 20rpx;
-        z-index: 0;
-        box-shadow: inset -10rpx -10rpx 10rpx #aaa8;
-        box-sizing: border-box;
-        border-left: 20rpx solid inherit;
-    }
-    .home-item-options {
-        position: absolute;
-        right: 10rpx;
-        top: 50%;
-        font-size: 40rpx;
-        transform: translateY(-50%);
-        display: flex;
-    }
-    .home-item-option {
-        margin-left: 10px;
-    }
-    .home-tab {
-        transition: 0.3s;
-    }
-    .home-add {
-        position: fixed;
         width: 100%;
-        height: 100%;
-        top: 0;
-        transition: 0.3s;
+        box-sizing: border-box;
+    }
+    .home-task-item-title-status {
+        width: 15rpx;
+        height: 15rpx;
+        border: 6rpx solid rgb(142, 169, 243);
+        border-radius: 50%;
+        margin-right: 25rpx;
+    }
+    .home-task-item-title {
+        font-size: 40rpx;
+    }
+    .home-task-item-info {
+        margin-top: 5rpx;
+        font-size: 20rpx;
+        color: #888;
+    }
+    .home-task-item-options {
+        position: absolute;
+        display: flex;
+        right: 20rpx;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .home-task-item-option {
+        margin-left: 10rpx;
     }
 </style>
