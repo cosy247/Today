@@ -4,61 +4,34 @@
             <view>{{ year }}年{{ month }}月</view>
             <view @click="showAddTask = true">&#xe624;</view>
         </view>
-        <view class="home-calendar">
+        <!-- <view class="home-calendar">
             <view class="home-calendar-weeks">
                 <view class="home-calendar-week" v-for="item in '一二三四五六日'">{{ item }}</view>
             </view>
             <view class="home-calendar-days" :style="{ height: `${Math.ceil(days.length / 7) * 130}rpx` }">
                 <view :class="{ 'home-calendar-day': true, 'home-calendar-hidden': item.month !== this.month }" v-for="item in days">
                     <view :class="{ 'home-calendar-num': true, 'home-calendar-current': item.day === this.day }">{{ item.day }}</view>
-                    <view class="home-calendar-tag">{{ item.tag }}</view>
+                    <view :class="{ 'home-calendar-tag': 1, 'home-calendar-tag-special': item.isSpecial }">{{ item.tag }}</view>
                 </view>
             </view>
-        </view>
-        <view class="home-task">
+        </view> -->
+        <TaskCalendar :date="`${year}/${month}/${day}`"/>
+        <!-- <TaskList/> -->
+        <!-- <view class="home-task">
             <view class="home-task-header">
                 <view class="home-task-header-date">{{ month }}月{{ day }}日</view>
                 <view class="home-task-header-interval">{{ intervalDay }}</view>
             </view>
             <view class="home-task-items">
-                <view v-for="item in tasks" :key="item.id" class="home-task-item">
-                    <view class="home-task-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
-                        <view class="home-task-item-title-status"></view>
-                        <view>
-                            <view class="home-task-item-title">{{ item.title }}</view>
-                            <view class="home-task-item-info">
-                                <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                                <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
-                            </view>
+                <view v-for="item in tasks" :key="item.id" :class="{ 'home-task-item': 1, 'home-task-item-touch': touchTaskId === item.id }" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)">
+                    <view class="home-task-item-title-status"></view>
+                    <view>
+                        <view class="home-task-item-title">{{ item.title }}</view>
+                        <view class="home-task-item-info">
+                            <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
+                            <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
                         </view>
                     </view>
-                    <view class="home-task-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
-                        <view class="home-task-item-option" @click="editTask(item)">&#xe622;</view>
-                        <view class="home-task-item-option" @click="resetTask(item)">&#xe648;</view>
-                        <!-- <view class="home-task-item-option" @click="toTopTask(item)">&#xe62b;</view> -->
-                        <view class="home-task-item-option" @click="deleteTask(item)">&#xe658;</view>
-                    </view>
-                </view>
-            </view>
-        </view>
-        <!-- <view class="home-items">
-            <view class="home-empty" v-if="tasks.length == 0">
-                <view class="home-empty-text font">点击右上角加号添加任务</view>
-            </view>
-            <view v-for="item in tasks" :key="item.id" :class="{ 'home-item': 1, 'home-task-item-hide': taskInfos[item.id].hide }">
-                <view class="home-task-item-cont" :style="`right: ${taskInfos[item.id].offset}px; transition: right ${taskInfos[item.id].isTouch ? 0 : 0.2}s;`" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)" @click="countTask(item)">
-                    <view class="home-task-item-title">{{ item.title }}</view>
-                    <view class="home-task-item-info">
-                        <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                        <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
-                    </view>
-                    <view class="home-task-item-range" :style="`background: ${item.label.color}; width: ${(item.done.count * 100) / item.count}%; border-color: ${item.label.color};`"></view>
-                </view>
-                <view class="home-task-item-options" :style="`opacity: ${taskInfos[item.id].offset / this.touchOffsetMax}`">
-                    <view class="home-task-item-option" @click="editTask(item)">&#xe622;</view>
-                    <view class="home-task-item-option" @click="resetTask(item)">&#xe648;</view>
-                    <view class="home-task-item-option" @click="toTopTask(item)">&#xe62b;</view>
-                    <view class="home-task-item-option" @click="deleteTask(item)">&#xe658;</view>
                 </view>
             </view>
         </view> -->
@@ -77,12 +50,13 @@
     import taskStorage from '../storage/task.js';
     import Tab from '../components/Tab';
     import AddTask from './AddTask';
-    import DatetimePickerVue from '../components/DatetimePicker.vue';
-    import MessageBox from '../components/MessageBox.vue';
-    import calendarFormatter from '../js/lunarCalendar';
+    import DatetimePickerVue from '../components/DatetimePicker';
+    import MessageBox from '../components/MessageBox';
+    import TaskCalendar from '../components/TaskCalendar';
+    import TaskList from '../components/TaskList';
 
     export default {
-        components: { Tab, AddTask, DatetimePickerVue, MessageBox },
+        components: { Tab, AddTask, DatetimePickerVue, MessageBox, TaskCalendar, TaskList },
         data: () => ({
             /** 当前年 */
             year: 0,
@@ -96,10 +70,14 @@
             taskInfos: {},
             /** 是否显示添加任务界面 */
             showAddTask: false,
-            /** 任务条触摸开始的x */
+            /** 触摸开始的x */
             touchStartX: 0,
+            /** 触摸开始的y */
+            touchStartY: 0,
             /** 任务条触摸开始的时间 */
             touchStartTime: 0,
+            /** 当前触摸的任务id */
+            touchTaskId: null,
             /** 任务条滑动最大值 */
             touchOffsetMax: uni.upx2px(150),
             /** 任务添加的默认数据，用户任务修改 */
@@ -113,21 +91,6 @@
             this.updateData(false);
         },
         computed: {
-            days() {
-                const days = [];
-                const startDay = new Date(`${this.year}/${this.month}/1`);
-                startDay.setHours(-24 * startDay.getDay() + 24);
-                while (startDay.getMonth() < this.month) {
-                    const tag = calendarFormatter.solar2lunar(this.year, this.month, startDay.getDate());
-                    days.push({
-                        month: startDay.getMonth() + 1,
-                        day: startDay.getDate(),
-                        tag: tag.IDayCn === '初一' ? tag.IMonthCn : tag.IDayCn,
-                    });
-                    startDay.setHours(24);
-                }
-                return days;
-            },
             intervalDay() {
                 const intervalDay = Math.round((new Date(`${this.year}/${this.month}/${this.day}`) - new Date()) / 1000 / 60 / 60 / 24);
                 if (intervalDay == 0) {
@@ -195,32 +158,33 @@
             /**
              * @description: 开始移动taskItem
              */
-            taskItemTouchStart({ id }, { touches: [{ clientX }] }) {
-                this.touchStartX = clientX + (this.taskInfos[id].offset || 0);
+            taskItemTouchStart({ id }, { touches: [{ clientX, clientY }] }) {
+                this.touchStartX = clientX;
+                this.touchStartY = clientY;
                 this.touchStartTime = +Date.now().valueOf();
-                this.taskInfos[id].isTouch = true;
+                this.touchTaskId = id;
+                setTimeout(() => {
+                    this.touchTaskId = null;
+                    alert(id);
+                }, 1500);
             },
             /**
              * @description: 移动taskItem
              */
-            taskItemTouchMove({ id }, { touches: [{ clientX }] }) {
-                this.taskInfos[id].offset = this.touchStartX - clientX;
+            taskItemTouchMove() {
+                this.touchTaskId = null;
             },
             /**
              * @description: 移动taskItem结束
              */
-            taskItemTouchEnd({ id }) {
-                this.taskInfos[id].isTouch = false;
-                if (this.taskInfos[id].offset >= this.touchOffsetMax || this.taskInfos[id].offset / (+Date.now().valueOf() - this.touchStartTime) > 0.8) {
-                    this.taskInfos[id].offset = this.touchOffsetMax;
-                } else {
-                    this.taskInfos[id].offset = 0;
+            taskItemTouchEnd(task) {
+                this.touchTaskId = null;
+                const touchSpanTime = (new Date() - this.touchStartTime);
+                if(touchSpanTime < 500) {
+                    if (task.done.count >= task.count) return;
+                    task.done.count++;
+                    this.updateData();
                 }
-                window.addEventListener('touchstart', () => {
-                    setTimeout(() => {
-                        this.taskInfos[id].offset = 0;
-                    }, 300);
-                });
             },
             /**
              * @description: 点击任务编辑事件回调
@@ -291,108 +255,5 @@
         margin: 30rpx 40rpx 0;
         font-size: 40rpx;
         font-weight: 900;
-    }
-
-    /* home-calendar */
-    .home-calendar {
-        font-size: 35rpx;
-        margin: 20rpx 10rpx 0;
-    }
-    .home-calendar-weeks {
-        margin-top: 20rpx;
-        display: flex;
-    }
-    .home-calendar-week {
-        text-align: center;
-        width: 100%;
-    }
-    .home-calendar-days {
-        margin-top: 30rpx;
-        display: grid;
-        grid: auto-flow 130rpx / repeat(7, 1fr);
-        transition: height 0.3s;
-        overflow: hidden;
-    }
-    .home-calendar-day {
-        text-align: center;
-        font-weight: 600;
-    }
-    .home-calendar-hidden {
-        visibility: hidden;
-        pointer-events: none;
-    }
-    .home-calendar-num {
-        border-radius: 50%;
-        width: 2em;
-        height: 2em;
-        line-height: 2em;
-        margin: auto;
-    }
-    .home-calendar-current {
-        background: rgb(169, 174, 241);
-        color: #fff;
-    }
-    .home-calendar-tag {
-        color: #888;
-        margin-top: 5rpx;
-        font-size: 20rpx;
-    }
-
-    /* home-task */
-    .home-task {
-        margin: 50rpx 30rpx 0;
-    }
-    .home-task-header {
-        display: flex;
-        align-items: baseline;
-    }
-    .home-task-header-date {
-        font-size: 40rpx;
-    }
-    .home-task-header-interval {
-        font-size: 30rpx;
-        margin-left: 15rpx;
-    }
-    .home-task-items {
-        margin-top: 30rpx;
-    }
-    .home-task-item {
-        position: relative;
-    }
-    .home-task-cont {
-        position: relative;
-        position: relative;
-        background: #fff;
-        padding: 20rpx 30rpx;
-        border-radius: 30rpx;
-        display: flex;
-        align-items: center;
-        width: 100%;
-        box-sizing: border-box;
-    }
-    .home-task-item-title-status {
-        width: 15rpx;
-        height: 15rpx;
-        border: 6rpx solid rgb(142, 169, 243);
-        border-radius: 50%;
-        margin-right: 25rpx;
-    }
-    .home-task-item-title {
-        font-size: 40rpx;
-    }
-    .home-task-item-info {
-        margin-top: 5rpx;
-        font-size: 20rpx;
-        color: #888;
-    }
-    .home-task-item-options {
-        position: absolute;
-        display: flex;
-        right: 20rpx;
-        top: 50%;
-        transform: translateY(-50%);
-    }
-    .home-task-item-option {
-        margin-left: 10rpx;
     }
 </style>
