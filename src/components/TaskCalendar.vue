@@ -16,11 +16,8 @@
     import calendarFormatter from '../js/lunarCalendar';
 
     export default {
-        props: ['date'],
-        data() {
-            const [year, month, day] = this.$props.date.split('/').map(item => +item);
-            return { year, month, day };
-        },
+        props: ['year', 'month', 'day'],
+        data: () => ({}),
         computed: {
             days() {
                 const days = [];

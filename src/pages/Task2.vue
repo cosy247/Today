@@ -15,8 +15,8 @@
                 </view>
             </view>
         </view> -->
-        <TaskCalendar :date="`${year}/${month}/${day}`"/>
-        <!-- <TaskList/> -->
+        <TaskCalendar :year="year" :month="month" :day="day"/>
+        <TaskList :year="year" :month="month" :day="day"/>
         <!-- <view class="home-task">
             <view class="home-task-header">
                 <view class="home-task-header-date">{{ month }}月{{ day }}日</view>
@@ -89,18 +89,6 @@
             this.month = now.getMonth() + 1;
             this.day = now.getDate();
             this.updateData(false);
-        },
-        computed: {
-            intervalDay() {
-                const intervalDay = Math.round((new Date(`${this.year}/${this.month}/${this.day}`) - new Date()) / 1000 / 60 / 60 / 24);
-                if (intervalDay == 0) {
-                    return '今天';
-                } else if (intervalDay > 0) {
-                    return `${intervalDay}天前`;
-                } else if (intervalDay < 0) {
-                    return `${-intervalDay}天后`;
-                }
-            },
         },
         methods: {
             /**

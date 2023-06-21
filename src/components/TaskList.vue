@@ -10,8 +10,8 @@
                 <view>
                     <view class="home-task-item-title">{{ item.title }}</view>
                     <view class="home-task-item-info">
-                        <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                        <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
+                        <view class="home-task-item-info-time">&#xe60f;&nbsp;{{ getTaskDatatime(item) }}</view>
+                        <view class="home-task-item-info-addr" v-if="item.addr">&nbsp;&#xe615;&nbsp;{{ item.addr }}</view>
                     </view>
                 </view>
             </view>
@@ -25,7 +25,55 @@
 </template>
 
 <script>
-    export default {};
+    import taskStorage from '../storage/task.js';
+    export default {
+        props: ['year', 'month', 'day'],
+        data: () => ({}),
+        computed: {
+            intervalDay() {
+                const intervalDay = Math.round((new Date(`${this.year}/${this.month}/${this.day}`) - new Date().setHours(0)) / 1000 / 60 / 60 / 24);
+                if (intervalDay == 0) {
+                    return '今天';
+                } else if (intervalDay > 0) {
+                    return `${intervalDay}天前`;
+                } else if (intervalDay < 0) {
+                    return `${-intervalDay}天后`;
+                }
+            },
+            tasks() {
+                return taskStorage.getDay(`${this.year}/${this.month}/${this.day}`);
+            },
+        },
+        methods: {
+            getTaskDatatime(task) {
+                if (task.datetime.start) {
+                    task.datetime.start = new Date(task.datetime.start);
+                    task.datetime.end = new Date(task.datetime.end);
+                    task.recycle.time.start = new Date(task.recycle.time.start);
+                    task.recycle.time.end = new Date(task.recycle.time.end);
+                }
+                if (task.recycle.type == 'one') {
+                    const allDays = Math.round((new Date(task.datetime.end.toLocaleDateString()) - new Date(task.datetime.start.toLocaleDateString())) / 1000 / 60 / 60 / 24);
+                    const currentDay = Math.round((new Date().setHours(0) - new Date(task.datetime.start.toLocaleDateString())) / 1000 / 60 / 60 / 24);
+                    if (task.isAllDay) {
+                        return allDays > 0 ? `全天(${currentDay + 1}/${allDays + 1})` : '全天';
+                    } else {
+                        const start = currentDay == 0 ? task.datetime.start.toLocaleTimeString().slice(0, 5) : '0:0';
+                        const end = currentDay == allDays ? task.datetime.end.toLocaleTimeString().slice(0, 5) : '0:0';
+                        return (start === end ? start : `${start}-${end}`) + (allDays > 0 ? `(${currentDay + 1}/${allDays + 1})` : '');
+                    }
+                } else {
+                    if (task.isAllDay) {
+                        return '全天';
+                    } else {
+                        const start = task.recycle.time.start.slice(11, 16);
+                        const end = task.recycle.time.end.slice(11, 16);
+                        return end === start ? start : `${start} - ${end}`;
+                    }
+                }
+            },
+        },
+    };
 </script>
 
 <style scoped>
@@ -74,6 +122,15 @@
         margin-top: 5rpx;
         font-size: 20rpx;
         color: #888;
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        -o-text-overflow: ellipsis;
+        width: 570rpx;
+    }
+    .home-task-item-info-time,
+    .home-task-item-info-addr {
+        display: inline;
     }
     .home-task-item-options {
         position: absolute;
