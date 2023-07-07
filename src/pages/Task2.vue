@@ -4,37 +4,8 @@
             <view>{{ year }}年{{ month }}月</view>
             <view @click="showAddTask = true">&#xe624;</view>
         </view>
-        <!-- <view class="home-calendar">
-            <view class="home-calendar-weeks">
-                <view class="home-calendar-week" v-for="item in '一二三四五六日'">{{ item }}</view>
-            </view>
-            <view class="home-calendar-days" :style="{ height: `${Math.ceil(days.length / 7) * 130}rpx` }">
-                <view :class="{ 'home-calendar-day': true, 'home-calendar-hidden': item.month !== this.month }" v-for="item in days">
-                    <view :class="{ 'home-calendar-num': true, 'home-calendar-current': item.day === this.day }">{{ item.day }}</view>
-                    <view :class="{ 'home-calendar-tag': 1, 'home-calendar-tag-special': item.isSpecial }">{{ item.tag }}</view>
-                </view>
-            </view>
-        </view> -->
-        <TaskCalendar :year="year" :month="month" :day="day"/>
+        <TaskCalendar :year="year" :month="month" :day="day" @changeDate="changeDate"/>
         <TaskList :year="year" :month="month" :day="day"/>
-        <!-- <view class="home-task">
-            <view class="home-task-header">
-                <view class="home-task-header-date">{{ month }}月{{ day }}日</view>
-                <view class="home-task-header-interval">{{ intervalDay }}</view>
-            </view>
-            <view class="home-task-items">
-                <view v-for="item in tasks" :key="item.id" :class="{ 'home-task-item': 1, 'home-task-item-touch': touchTaskId === item.id }" @touchmove="taskItemTouchMove(item, $event)" @touchstart="taskItemTouchStart(item, $event)" @touchend="taskItemTouchEnd(item, $event)">
-                    <view class="home-task-item-title-status"></view>
-                    <view>
-                        <view class="home-task-item-title">{{ item.title }}</view>
-                        <view class="home-task-item-info">
-                            <view class="home-task-item-info-time" v-show="taskInfos[item.id].datatime">&#xe60f;&nbsp;{{ taskInfos[item.id].datatime }}</view>
-                            <view class="home-task-item-info-addr" v-show="item.addr">&#xe615;&nbsp;{{ item.addr }}</view>
-                        </view>
-                    </view>
-                </view>
-            </view>
-        </view> -->
     </view>
 
     <!-- 实例 -->
@@ -86,11 +57,20 @@
         beforeMount() {
             const now = new Date();
             this.year = now.getFullYear();
-            this.month = now.getMonth() + 1;
+            this.month = now.getMonth() + 2;
             this.day = now.getDate();
             this.updateData(false);
         },
         methods: {
+            /**
+             * @description: 修改时间
+             * @param {Date} date: 修改的目标时间
+             */
+            changeDate(date) {
+                this.year = date.year;
+                this.month = date.month;
+                this.day = date.day;
+            },
             /**
              * @description: 任务更新数据
              * @param {bool} update: 是否需要更新源数据
